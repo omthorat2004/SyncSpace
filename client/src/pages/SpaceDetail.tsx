@@ -1,3 +1,4 @@
+import { ContentCardSkeleton } from "@/components/skeleton/ContentCardSkeleton";
 import { ContentCard } from "@/features/content/components/ContentCard";
 import { CreateContentModal } from "@/features/content/components/CreateContentModal";
 import { type ContentType } from "@/features/content/content.type";
@@ -111,8 +112,8 @@ const SpaceDetail = () => {
                                 key={type}
                                 onClick={() => setSelectedType(type)}
                                 className={`px-4 py-2 rounded-lg transition-colors ${selectedType === type
-                                        ? "bg-accent text-accent-text"
-                                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                    ? "bg-accent text-accent-text"
+                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                                     }`}
                             >
                                 {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
@@ -157,19 +158,29 @@ const SpaceDetail = () => {
                         </div>
                     )}
 
+
+
                     {/* Content Grid */}
-                    {!loading && filteredContents.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {filteredContents.map((content) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {loading ? (
+                            Array.from({ length: 6 }).map((_, index) => (
+                                <ContentCardSkeleton key={index} />
+                            ))
+                        ) : filteredContents.length > 0 ? (
+                            filteredContents.map((content) => (
                                 <ContentCard
                                     key={content.id}
                                     content={content}
                                     spaceId={spaceIdNum}
                                     onDelete={handleRefresh}
                                 />
-                            ))}
-                        </div>
-                    )}
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center text-muted py-10">
+                                No content found
+                            </div>
+                        )}
+                    </div>
                 </div>
             </section>
 
