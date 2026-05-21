@@ -1,5 +1,7 @@
-from sqlalchemy import Base, Column, Integer, ForeignKey, String, DATETIME, func, UniqueConstraint
+from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, func, UniqueConstraint
 from datetime import datetime
+from src.server.database.database import Base
+from sqlalchemy.orm import relationship
 
 class SpaceMembers(Base):
     """Store shared space data"""
@@ -9,8 +11,11 @@ class SpaceMembers(Base):
     space_id = Column(Integer,ForeignKey("spaces.id",ondelete="CASCADE"),nullable=False)
     user_id = Column(Integer,ForeignKey("users.id",ondelete="CASCADE"),nullable=False)
     permission = Column(String, default="viewer",nullable=False)
-    created_at = Column(DATETIME,server_default=func.now(),onupdate=func.now())
+    created_at = Column(DateTime,server_default=func.now(),onupdate=func.now())
     
+    
+    user = relationship("User",back_populates="shared_spaces")
+    space = relationship("Space",back_populates="shared_spaces")
     __table_args__ = (
          UniqueConstraint(
             'space_id',

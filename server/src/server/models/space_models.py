@@ -26,6 +26,7 @@ class Space(Base):
 
     owner = relationship("User", back_populates="spaces")
     contents = relationship("Content",back_populates="space")
+    shared_spaces = relationship("SpaceMember",back_populates="space")
     
 class Content(Base):
     __tablename__ = "contents"

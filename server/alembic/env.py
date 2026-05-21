@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from src.server.database.database import Base
-from src.server.models import auth_models, space_models  # noqa: F401
+from src.server.models import auth_models, space_models, space_member_model  # noqa: F401
 
 
 # this is the Alembic Config object, which provides
