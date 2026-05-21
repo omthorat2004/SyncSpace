@@ -3,6 +3,7 @@ import { ContentCard } from "@/features/content/components/ContentCard";
 import { CreateContentModal } from "@/features/content/components/CreateContentModal";
 import { type ContentType } from "@/features/content/content.type";
 import { fetchContents } from "@/features/content/contentSlice";
+
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 import { useEffect, useState } from "react";
 import { FiArrowLeft, FiPlus } from "react-icons/fi";
@@ -12,12 +13,13 @@ const SpaceDetail = () => {
     const { spaceId } = useParams<{ spaceId: string }>();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-
+    const { currentSpace } = useAppSelector((state) => state.space)
     const { contents, loading, error } = useAppSelector((state) => state.content);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedType, setSelectedType] = useState<ContentType | "all">("all");
-    const [spaceName, setSpaceName] = useState("Space");
+    const [spaceName] = useState(currentSpace?.name);
 
+    console.log(currentSpace)
     const spaceIdNum = spaceId ? parseInt(spaceId, 10) : 0;
 
     useEffect(() => {

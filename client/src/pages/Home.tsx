@@ -27,6 +27,7 @@ const Home = () => {
     dispatch(openCreateModal());
   };
 
+  console.log(spaces)
   // Convert Space to SpaceCardData for display
   const spaceCards: SpaceCardData[] = spaces.map((space) => ({
     id: space.id,
@@ -34,12 +35,17 @@ const Home = () => {
     description: space.description || 'No description',
     members: 1, // Single user for now
     items: 0, // Will be updated with content count
-    updated: new Date(space.created_at).toLocaleDateString('en-US', {
+    updated_at: new Date(space.updated_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     }),
-    tags: [],
+    created_at : new Date(space.updated_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }),
+    owner_id : space.owner_id
   }));
 
   // Calculate stats

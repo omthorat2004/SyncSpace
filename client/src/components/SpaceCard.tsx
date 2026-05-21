@@ -1,5 +1,7 @@
 import { FiLayers, FiUsers } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
+import { setCurrentSpace } from '@/features/space/spaceSlice'
+import { useAppDispatch } from '@/store/hook'
 
 export type SpaceCardData = {
     id: number
@@ -7,8 +9,9 @@ export type SpaceCardData = {
     description: string
     members: number
     items: number
-    updated: string
-    tags: string[]
+    updated_at: string
+    created_at:string
+    owner_id:number
 }
 
 interface SpaceCardProps {
@@ -17,8 +20,10 @@ interface SpaceCardProps {
 
 const SpaceCard = ({ space }: SpaceCardProps) => {
     const navigate = useNavigate()
+    const dispatch = useAppDispatch()
 
-    const handleClick = () => {
+    const handleClick =() => {
+        dispatch(setCurrentSpace(space))
         navigate(`/dashboard/spaces/${space.id}`)
     }
 
@@ -33,17 +38,17 @@ const SpaceCard = ({ space }: SpaceCardProps) => {
                     <p className="text-sm text-muted mt-2">{space.description}</p>
                 </div>
                 <span className="text-xs px-2 py-1 rounded-full bg-background border border-border text-muted whitespace-nowrap">
-                    Updated {space.updated}
+                    Updated {space.updated_at}
                 </span>
             </div>
 
-            <div className="flex flex-wrap gap-2 mt-4">
+            {/* <div className="flex flex-wrap gap-2 mt-4">
                 {space.tags.map((tag) => (
                     <span key={tag} className="text-xs px-2 py-1 rounded-full bg-background border border-border text-muted">
                         #{tag}
                     </span>
                 ))}
-            </div>
+            </div> */}
 
             <div className="flex items-center gap-5 mt-5 text-sm">
                 <span className="inline-flex items-center gap-1.5 text-muted">
