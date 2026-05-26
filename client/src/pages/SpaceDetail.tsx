@@ -53,7 +53,7 @@ const SpaceDetail = () => {
                 <div className="flex items-center gap-4 mb-6">
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                        className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
                     >
                         <FiArrowLeft size={20} />
                     </button>

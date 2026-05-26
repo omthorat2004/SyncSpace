@@ -59,7 +59,7 @@ const Navbar = () => {
                 <div className="h-16 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-8 min-w-0">
                         <Link to="/dashboard" className="no-underline hover:no-underline flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold bg-accent text-accent-text">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold bg-slate-100 text-foreground">
                                 S
                             </div>
                             <span className="font-bold text-lg hidden sm:block text-foreground">
@@ -76,7 +76,7 @@ const Navbar = () => {
                             </Link>
                             <button
                                 onClick={handleCreateSpace}
-                                className="px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2 border border-accent text-accent hover:bg-accent hover:text-accent-text transition-colors"
+                                className="px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2 border border-border text-foreground hover:bg-slate-100 transition-colors"
                             >
                                 <FiPlus size={14} />
                                 New Space
@@ -99,7 +99,7 @@ const Navbar = () => {
                         </button>
 
                         <div className="hidden sm:flex items-center gap-2 rounded-lg px-3 py-2 bg-card border border-border">
-                            <FiGrid size={14} className="text-accent" />
+                            <FiGrid size={14} className="text-muted" />
                             <span className="text-sm font-medium text-foreground">
                                 {user?.name ?? 'Workspace'}
                             </span>

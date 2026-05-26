@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 from src.server.core._settings import settings
 
-DATABASE_URL = str(settings.database_url )
+DATABASE_URL = str(settings.database_url)
 
 engine = create_async_engine(
     DATABASE_URL,
@@ -23,4 +23,11 @@ Base = declarative_base()
 
 async def get_db():
     async with AsyncSessionLocal() as session:
-        yield session
+        try:
+            yield session
+            # Automatically commit the transaction if the endpoint finishes with no errors
+            await session.commit()
+        except Exception:
+            # Explicitly catch errors, rollback, and re-raise them
+            await session.rollback()
+            raise

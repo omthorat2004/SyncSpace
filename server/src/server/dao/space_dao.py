@@ -8,9 +8,10 @@ Handles all database operations related to spaces including:
 - Deleting spaces
 """
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.server.models.space_models import Space
+from datetime import datetime
 
 
 class SpaceDAO:
@@ -159,3 +160,13 @@ class SpaceDAO:
             )
         )
         return result.scalar_one_or_none() is not None
+    
+    async def touch_space(self, space_id: int) -> None:
+        await self.db.execute(
+            update(Space)
+            .where(Space.id == space_id)
+            .values(updated_at=datetime.now())
+        )
+
+        await self.db.commit()
+

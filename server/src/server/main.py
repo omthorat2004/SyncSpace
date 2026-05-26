@@ -10,7 +10,20 @@ from src.server.router.auth import router as auth_router
 from src.server.router.space import router as space_router
 from src.server.router.content import router as content_router
 
+# Fetch the uvicorn error logger to use its handlers and formatters
 logger = logging.getLogger("uvicorn.error")
+
+# --- PERFECT LOGGING INTEGRATION START ---
+# Configure your application's top-level namespace ("src")
+app_logger = logging.getLogger("src")
+app_logger.setLevel(logging.INFO)
+
+# If Uvicorn has already initialized its stream handlers, pipe "src" logs into them
+# This guarantees your logs match Uvicorn's formatting perfectly
+if logger.handlers:
+    app_logger.handlers = logger.handlers
+    app_logger.propagate = False
+# --- PERFECT LOGGING INTEGRATION END ---
 
 
 def _normalize_api_prefix(prefix: str) -> str:
@@ -58,4 +71,3 @@ app.include_router(content_router, prefix=API_PREFIX)
 @app.get("/health", tags=["health"])
 async def health_check():
     return {"status": "ok"}
-

@@ -35,6 +35,8 @@ from src.server.exceptions.content_exceptions import (
 )
 from src.server.models.space_models import Content, ContentType
 
+logging.getLogger("src.server.services.content_service").setLevel(logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 # Validation constants
@@ -192,7 +194,9 @@ class ContentService:
                 content=content,
                 url=validated_url,
             )
-
+            
+            await self.space_dao.touch_space(space_id=space_id)
+            
             # Invalidate cache
             await self.cache.delete(get_space_contents_cache_key(space_id))
             await self.cache.delete(
@@ -241,6 +245,8 @@ class ContentService:
                 if isinstance(cached_content.get('created_at'), str):
                     cached_content['created_at'] = datetime.fromisoformat(cached_content['created_at'])
                 return Content(**cached_content)
+            
+        logger.info("Cache MISS")
 
         # Get from database
         content = await self.dao.get_content_by_id(content_id)
@@ -317,7 +323,9 @@ class ContentService:
                                 item['created_at'] = datetime.fromisoformat(item['created_at'])
                             contents.append(Content(**item))
                     return contents
-
+                
+                
+        logger.info("Cache Miss")
         # Get from database
         contents = await self.dao.get_contents_by_space(space_id)
 

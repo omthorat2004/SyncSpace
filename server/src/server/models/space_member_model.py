@@ -3,7 +3,7 @@ from datetime import datetime
 from src.server.database.database import Base
 from sqlalchemy.orm import relationship
 
-class SpaceMembers(Base):
+class SpaceMember(Base):
     """Store shared space data"""
     __tablename__ = "space_members"
     

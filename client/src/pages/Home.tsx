@@ -15,10 +15,7 @@ const Home = () => {
   const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch spaces on component mount
     dispatch(fetchSpaces());
-
-    // Simulate initial loading for skeleton display
     const timer = window.setTimeout(() => setInitialLoading(false), 1200);
     return () => window.clearTimeout(timer);
   }, [dispatch]);
@@ -27,82 +24,70 @@ const Home = () => {
     dispatch(openCreateModal());
   };
 
-  console.log(spaces)
-  // Convert Space to SpaceCardData for display
   const spaceCards: SpaceCardData[] = spaces.map((space) => ({
     id: space.id,
     name: space.name,
     description: space.description || 'No description',
-    members: 1, // Single user for now
-    items: 0, // Will be updated with content count
+    members: 1,
+    items: 0,
     updated_at: new Date(space.updated_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     }),
-    created_at : new Date(space.updated_at).toLocaleDateString('en-US', {
+    created_at: new Date(space.updated_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     }),
-    owner_id : space.owner_id
+    owner_id: space.owner_id,
   }));
 
-  // Calculate stats
   const totalSpaces = spaces.length;
-  const totalItems = 0; // Will be calculated from content
-  const collaborators = 1; // Single user
+  const totalItems = 0;
+  const collaborators = 1;
   const recentlyActive = spaces.length > 0 ? 1 : 0;
 
   if (initialLoading || loading) {
     return (
-      <div className="min-h-full bg-background text-foreground">
+      <div className="min-h-full bg-background text-foreground dark:bg-slate-950 dark:text-slate-100">
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
-
-          {/* Header */}
           <HeaderSkeleton />
 
-          {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <StatsSkeleton key={i} />
             ))}
           </div>
 
-          {/* Spaces */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
             {Array.from({ length: 4 }).map((_, i) => (
               <SpaceCardSkeleton key={i} />
             ))}
           </div>
-
         </section>
       </div>
     );
   }
 
   return (
-    <div className="min-h-full bg-background text-foreground">
+    <div className="min-h-full bg-background text-foreground dark:bg-slate-950 dark:text-slate-100">
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-
-        {/* Header */}
-        <div className="rounded-2xl border border-border bg-card p-5 sm:p-7">
-          <div className="flex flex-col md:flex-row md:justify-between gap-5 items-center">
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-7 shadow-sm">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-5">
             <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-muted">
+              <p className="text-xs uppercase tracking-[0.18em] text-secondary">
                 Workspace Dashboard
               </p>
-              <h1 className="text-2xl sm:text-3xl font-bold mt-2">
-                Your Spaces
-              </h1>
-              <p className="text-muted mt-2 max-w-2xl">
+              <h1 className="text-2xl sm:text-3xl font-bold mt-2">Your Spaces</h1>
+              <p className="text-base text-secondary mt-2 max-w-2xl">
                 Keep all your notes, links, snippets, and ideas grouped by space.
               </p>
             </div>
 
             <button
               onClick={handleCreateSpaceClick}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-accent-text hover:bg-accent-hover"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-slate-900 transition-colors"
             >
               <FiPlus size={16} />
               Create New Space
@@ -110,77 +95,61 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Error State */}
         {error && (
           <div className="mt-6 p-4 bg-red-100 text-red-700 rounded-lg">
             {error}
           </div>
         )}
 
-        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm text-muted">Total Spaces</p>
-            <p className="text-2xl font-bold mt-1">{totalSpaces}</p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm text-muted">Total Items</p>
-            <p className="text-2xl font-bold mt-1">{totalItems}</p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm text-muted">Collaborators</p>
-            <p className="text-2xl font-bold mt-1">{collaborators}</p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm text-muted">Recently Active</p>
-            <p className="text-2xl font-bold mt-1">{recentlyActive}</p>
-          </div>
+          {[
+            { label: 'Total Spaces', value: totalSpaces },
+            { label: 'Total Items', value: totalItems },
+            { label: 'Collaborators', value: collaborators },
+            { label: 'Recently Active', value: recentlyActive },
+          ].map((stat) => (
+            <div key={stat.label} className="rounded-xl border border-border bg-card p-4">
+              <p className="text-sm text-secondary">{stat.label}</p>
+              <p className="text-2xl font-bold mt-1">{stat.value}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Spaces */}
         <div className="mt-8">
-          <div className="flex justify-between mb-4">
-            <h2 className="text-xl font-semibold">Spaces</h2>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+            <div>
+              <h2 className="text-xl font-semibold">Spaces</h2>
+            </div>
             {spaceCards.length > 0 && (
-              <button className="text-sm text-accent flex items-center gap-1">
+              <button className="text-sm text-secondary flex items-center gap-1 hover:text-foreground transition-colors">
                 View all <FiArrowRight />
               </button>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <article className="border border-dashed border-accent/50 bg-card p-5 rounded-xl">
-              <FiFolderPlus size={20} />
-              <h3 className="text-lg font-semibold mt-4">
-                Create a New Space
-              </h3>
-              <p className="text-sm text-muted mt-2">
-                Start organizing your workflow.
-              </p>
+            <article className="border border-dashed border-border bg-card p-5 rounded-xl">
+              <FiFolderPlus size={20} className="text-secondary" />
+              <h3 className="text-lg font-semibold mt-4 text-primary">Create a New Space</h3>
+              <p className="text-sm text-secondary mt-2">Start organizing your workflow.</p>
 
               <button
                 onClick={handleCreateSpaceClick}
-                className="mt-5 px-4 py-2 bg-accent text-accent-text rounded-lg"
+                className="mt-5 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-slate-900 transition-colors"
               >
                 New Space
               </button>
             </article>
 
             {spaceCards.length > 0 ? (
-              spaceCards.map((space) => (
-                <SpaceCard key={space.id} space={space} />
-              ))
+              spaceCards.map((space) => <SpaceCard key={space.id} space={space} />)
             ) : (
               <div className="col-span-1 md:col-span-2 text-center py-8">
-                <p className="text-muted">No spaces yet. Create your first space to get started!</p>
+                <p className="text-secondary">No spaces yet. Create your first space to get started!</p>
               </div>
             )}
           </div>
         </div>
-
       </section>
 
       <CreateSpaceModal />

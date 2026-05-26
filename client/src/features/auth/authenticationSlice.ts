@@ -116,7 +116,13 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null
     },
-    resetAuthState: () => initialState,
+    resetAuthState: (state) =>{
+      state.accessToken = ''
+      state.refreshToken = ''
+      state.isAuthenticated = false
+      localStorage.clear()
+      
+    },
     updateUserProfile: (state, action: PayloadAction<Partial<typeof state.user>>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload }

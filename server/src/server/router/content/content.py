@@ -30,6 +30,7 @@ from src.server.schemas.content import (
 from src.server.schemas.user import User
 from src.server.services.content.content_service import ContentService
 
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/spaces/{space_id}/contents", tags=["contents"])

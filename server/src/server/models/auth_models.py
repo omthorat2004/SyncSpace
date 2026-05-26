@@ -21,6 +21,7 @@ class User(Base):
     # Relationship to Space
     spaces = relationship("Space", back_populates="owner", cascade="all, delete-orphan")
     shared_spaces = relationship("SpaceMember",back_populates="user",cascade="all, delete-orphan")
+    
     @hybrid_property
     def password(self):
         """Getter for password (not directly accessible for security)"""
