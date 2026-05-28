@@ -64,7 +64,7 @@ export default function Login() {
     }
 
     try {
-      const result = await dispatch(login(formData)).unwrap()
+      await dispatch(login(formData)).unwrap()
       // Navigate to dashboard after successful login
       navigate('/dashboard', {
         replace: true
@@ -76,22 +76,16 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
-      {/* Background neutral lighting */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-slate-200 rounded-full filter blur-3xl opacity-70"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-slate-100 rounded-full filter blur-3xl opacity-70"></div>
-      </div>
-
+    <div className="min-h-full bg-background text-foreground flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Card container */}
-        <div className="card shadow-lg hover-lift">
+        <div className="card rounded-2xl p-6 sm:p-8">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
+            <h1 className="text-3xl font-semibold mt-2 text-foreground">
               Welcome Back
             </h1>
-            <p className="text-muted text-sm">
+            <p className="text-sm text-muted">
               Sign in to your SyncSpace account
             </p>
           </div>
@@ -119,8 +113,7 @@ export default function Login() {
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`form-field pl-3 pr-10 ${formErrors.email ? 'border-destructive' : ''
-                    }`}
+                  className={`form-field pl-3 pr-10 ${formErrors.email ? 'border-destructive' : ''}`}
                   disabled={loading}
                   autoComplete="email"
                   required
@@ -141,22 +134,12 @@ export default function Login() {
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="text-xs font-medium transition-colors duration-200"
-                  style={{ color: 'var(--link)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--link-hover)'
-                    e.currentTarget.style.textDecoration = 'none'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--link)'
-                    e.currentTarget.style.textDecoration = 'none'
-                  }}
+                  className="text-xs font-medium text-muted hover:text-foreground transition-colors duration-200"
                 >
                   Forgot?
                 </Link>
               </div>
               <div className="relative">
-
                 <input
                   id="password"
                   name="password"
@@ -164,8 +147,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`form-field pl-3 pr-10 ${formErrors.password ? 'border-destructive' : ''
-                    }`}
+                  className={`form-field pl-3 pr-10 ${formErrors.password ? 'border-destructive' : ''}`}
                   disabled={loading}
                   autoComplete="current-password"
                 />

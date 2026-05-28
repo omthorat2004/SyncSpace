@@ -30,19 +30,19 @@ const SpaceCard = ({ space }: SpaceCardProps) => {
     return (
         <article
             onClick={handleClick}
-            className="rounded-xl border border-outline-variant bg-white p-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer dark:bg-slate-950 dark:border-slate-700"
+            className="card rounded-xl p-5 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer"
         >
             <div className="flex items-start justify-between gap-4">
-                <div>
-                    <h3 className="text-lg font-semibold text-primary dark:text-white">{space.name}</h3>
-                    <p className="text-sm text-secondary mt-2">{space.description}</p>
+                <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-foreground">{space.name}</h3>
+                    <p className="text-sm text-muted mt-2 line-clamp-2">{space.description}</p>
                 </div>
-                <span className="text-xs px-2 py-1 rounded-full bg-background border border-border text-secondary whitespace-nowrap dark:bg-slate-900 dark:border-slate-700">
+                <span className="text-xs px-3 py-1.5 rounded-full bg-surface-container border border-border text-muted whitespace-nowrap">
                     Updated {space.updated_at}
                 </span>
             </div>
 
-            <div className="flex items-center gap-5 mt-5 text-sm text-secondary">
+            <div className="flex items-center gap-5 mt-5 text-sm text-muted">
                 <span className="inline-flex items-center gap-1.5">
                     <FiUsers size={14} />
                     {space.members} members

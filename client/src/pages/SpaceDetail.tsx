@@ -1,12 +1,13 @@
 import { ContentCardSkeleton } from "@/components/skeleton/ContentCardSkeleton";
 import { ContentCard } from "@/features/content/components/ContentCard";
 import { CreateContentModal } from "@/features/content/components/CreateContentModal";
+import SharedWithYou from "@/features/shared-spaces/components/SharedWithYou"; // Add this import
 import { type ContentType } from "@/features/content/content.type";
 import { fetchContents } from "@/features/content/contentSlice";
 
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 import { useEffect, useState } from "react";
-import { FiArrowLeft, FiPlus } from "react-icons/fi";
+import { FiArrowLeft, FiPlus, FiUsers } from "react-icons/fi"; // Add FiUsers
 import { useNavigate, useParams } from "react-router-dom";
 
 const SpaceDetail = () => {
@@ -48,14 +49,14 @@ const SpaceDetail = () => {
 
     return (
         <div className="min-h-full bg-background text-foreground">
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+            <div className="site-nav-inner py-8 sm:py-10">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-6">
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-muted hover:bg-surface-container-high transition-colors"
                     >
-                        <FiArrowLeft size={20} />
+                        <FiArrowLeft size={18} />
                     </button>
                     <div>
                         <p className="text-xs uppercase tracking-[0.18em] text-muted">
@@ -65,7 +66,7 @@ const SpaceDetail = () => {
                     </div>
                 </div>
 
-                {/* Stats */}
+                {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div className="rounded-xl border border-border bg-card p-4">
                         <p className="text-sm text-muted">Total Items</p>
@@ -90,7 +91,7 @@ const SpaceDetail = () => {
 
                 {/* Content Section */}
                 <div className="rounded-2xl border border-border bg-card p-5 sm:p-7 mb-8">
-                    <div className="flex flex-col md:flex-row md:justify-between gap-5 items-center mb-6">
+                    <div className="flex flex-col md:flex-row md:justify-between gap-5 items-start md:items-center mb-6">
                         <div>
                             <h2 className="text-xl font-semibold">Contents</h2>
                             <p className="text-sm text-muted mt-1">
@@ -100,7 +101,7 @@ const SpaceDetail = () => {
 
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent text-accent-text hover:bg-accent-hover"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-foreground text-background hover:bg-secondary transition-colors font-medium"
                         >
                             <FiPlus size={16} />
                             Add Content
@@ -113,10 +114,11 @@ const SpaceDetail = () => {
                             <button
                                 key={type}
                                 onClick={() => setSelectedType(type)}
-                                className={`px-4 py-2 rounded-lg transition-colors ${selectedType === type
-                                    ? "bg-accent text-accent-text"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                    }`}
+                                className={`px-4 py-2 rounded-full transition-colors ${
+                                    selectedType === type
+                                        ? "bg-foreground text-background"
+                                        : "bg-surface-container text-muted hover:bg-surface-container-high"
+                                }`}
                             >
                                 {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
                             </button>
@@ -125,11 +127,11 @@ const SpaceDetail = () => {
 
                     {/* Error State */}
                     {error && (
-                        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-                            {error}
+                        <div className="mb-4 p-4 rounded-xl border border-border bg-destructive/10 text-destructive">
+                            <span>{error}</span>
                             <button
                                 onClick={handleRefresh}
-                                className="ml-2 underline hover:no-underline"
+                                className="ml-3 underline hover:no-underline font-medium"
                             >
                                 Retry
                             </button>
@@ -139,7 +141,7 @@ const SpaceDetail = () => {
                     {/* Loading State */}
                     {loading && (
                         <div className="flex justify-center items-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+                            <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
                         </div>
                     )}
 
@@ -153,14 +155,12 @@ const SpaceDetail = () => {
                             </p>
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
-                                className="px-4 py-2 bg-accent text-accent-text rounded-lg hover:bg-accent-hover"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-foreground text-background hover:bg-secondary transition-colors font-medium"
                             >
                                 Create Content
                             </button>
                         </div>
                     )}
-
-
 
                     {/* Content Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -184,7 +184,10 @@ const SpaceDetail = () => {
                         )}
                     </div>
                 </div>
-            </section>
+
+                {/* Shared With You Section - ADD THIS */}
+                <SharedWithYou spaceId={spaceIdNum} spaceName={spaceName} />
+            </div>
 
             {/* Create Content Modal */}
             <CreateContentModal

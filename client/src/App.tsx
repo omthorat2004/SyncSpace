@@ -22,7 +22,7 @@ function AppShell() {
   return (
     <div className="flex flex-col min-h-screen">
       {useLoggedInLayout ? <Navbar /> : <GuestNavbar />}
-      <main className="grow">
+      <main>
         <Routes>
           <Route path="/" element={<GuestHome />} />
           <Route path='/signup' element={<AuthRedirect><Signup /></AuthRedirect>} />

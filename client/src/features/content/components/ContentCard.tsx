@@ -85,16 +85,8 @@ export const ContentCard = ({
     });
 
   return (
-    <article
-      className="
-        card
-        hover-lift
-        group
-        relative
-        overflow-hidden
-      "
-    >
-      {/* Glow Border */}
+    <article className="card group relative overflow-hidden hover-lift">
+      {/* Glow Border Effect */}
       <div
         className="
           absolute inset-0 opacity-0 group-hover:opacity-100
@@ -107,21 +99,11 @@ export const ContentCard = ({
         {/* Header */}
         <div className="flex items-start justify-between mb-4 gap-3">
           <div className="flex-1 min-w-0">
-            <h3
-              className="
-                text-lg font-semibold text-foreground
-                truncate
-              "
-            >
+            <h3 className="text-lg font-semibold text-foreground truncate">
               {content.title}
             </h3>
 
-            <span
-              className={`
-                chip inline-block mt-2 capitalize
-                ${badgeClass}
-              `}
-            >
+            <span className={`chip inline-block mt-2 capitalize ${badgeClass}`}>
               {content.type}
             </span>
           </div>
@@ -132,12 +114,7 @@ export const ContentCard = ({
         </div>
 
         {/* Content */}
-        <p
-          className="
-            text-muted text-sm mb-4
-            line-clamp-3 break-words
-          "
-        >
+        <p className="text-muted text-sm mb-4 line-clamp-3 break-words">
           {content.content}
         </p>
 
@@ -148,12 +125,7 @@ export const ContentCard = ({
               href={content.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="
-                text-link hover:text-link-hover
-                text-sm truncate block
-                transition-colors
-                hover:no-underline!
-              "
+              className="text-link hover:text-link-hover text-sm truncate block transition-colors hover:no-underline"
             >
               Open Link →
             </a>
@@ -161,19 +133,13 @@ export const ContentCard = ({
         )}
 
         {/* Actions */}
-        <div
-          className="
-            flex gap-2 justify-end pt-3
-            border-t border-border
-          "
-        >
+        <div className="flex gap-2 justify-end pt-3 border-t border-border">
           <button
             onClick={handleCopy}
             className="
-              px-3 py-1.5 text-xs font-medium
-              bg-border text-foreground
-              rounded-md
-              hover:bg-muted/20
+              px-3 py-1.5 text-xs font-medium rounded-full
+              bg-surface-container text-muted
+              hover:bg-surface-container-high
               transition-all duration-200
             "
           >
@@ -184,10 +150,9 @@ export const ContentCard = ({
             <button
               onClick={() => onEdit(content)}
               className="
-                px-3 py-1.5 text-xs font-medium
-                bg-accent text-accent-text
-                rounded-md
-                hover:bg-accent-hover
+                px-3 py-1.5 text-xs font-medium rounded-full
+                bg-foreground text-background
+                hover:bg-secondary
                 transition-all duration-200
               "
             >
@@ -199,13 +164,11 @@ export const ContentCard = ({
             onClick={handleDelete}
             disabled={loading}
             className="
-              px-3 py-1.5 text-xs font-medium
+              px-3 py-1.5 text-xs font-medium rounded-full
               bg-destructive text-white
-              rounded-md
-              hover:bg-destructive-hover
+              hover:bg-destructive/80
               transition-all duration-200
-              disabled:opacity-50
-              disabled:cursor-not-allowed
+              disabled:opacity-50 disabled:cursor-not-allowed
             "
           >
             {loading ? "Deleting..." : "Delete"}
