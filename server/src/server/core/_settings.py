@@ -1,6 +1,6 @@
 from functools import cached_property
 from pathlib import Path
-
+from enum import Enum
 from dotenv import load_dotenv
 from pydantic import Field, PostgresDsn, RedisDsn, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -8,7 +8,9 @@ from redis.asyncio import ConnectionPool
 
 BASE_DIR = Path(__file__).resolve().parents[3]
 
-
+class Permission(str,Enum):
+    VIEW="viewer"
+    EDIT="editor"
 
 
 class RedisSettings(BaseSettings):
@@ -36,7 +38,6 @@ class Settings(BaseSettings):
     secret_key:SecretStr
     redis:RedisSettings = Field(default_factory=RedisSettings)
     
-
     access_token_expire_minutes:int=10
     refresh_token_expire_day:int=7
     
@@ -48,6 +49,8 @@ class Settings(BaseSettings):
     debug: bool = False
     environment: str = "development"
     api_v1_prefix: str = "/api/v1"
+    
+    permissions : Permission = Permission.VIEW
     
     @field_validator("allow_origins", mode="before")
     def parse_origins(cls, v):
