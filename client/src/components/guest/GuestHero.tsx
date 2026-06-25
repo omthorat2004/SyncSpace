@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 const GuestHero: React.FC = () => {
     return (
-        <section className="hero-section" aria-labelledby="hero-heading">
+        <section className="hero-section overflow-hidden" aria-labelledby="hero-heading">
             <div className="absolute inset-x-0 top-0 h-48 hero-gradient" />
             <div className="hero-grid">
                 <div className="hero-copy-block" role="region" aria-label="Intro">

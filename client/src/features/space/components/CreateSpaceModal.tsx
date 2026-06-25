@@ -169,7 +169,7 @@ export const CreateSpaceModal = () => {
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/70 bg-opacity-50 z-40 transition-opacity duration-200"
+                className="fixed backdrop-blur-[4px] inset-0 bg-black/70 bg-opacity-50 z-50 transition-opacity duration-200"
                 onClick={handleClose}
                 role="presentation"
             />

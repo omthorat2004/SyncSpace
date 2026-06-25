@@ -72,7 +72,7 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-full bg-background text-foreground">
+    <div className="min-h-full bg-background text-foreground mt-12">
       <div className="site-nav-inner py-10">
         {/* Header Card */}
         <div className="card rounded-2xl p-6 sm:p-8">

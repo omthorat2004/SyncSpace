@@ -12,5 +12,5 @@ class ShareSpaceDAO:
         space_member = SpaceMember(space_id=space_id,user_id=user_id)
         self.db.add(space_member)
     
-    async def get_user_by_email(self,email:EmailStr) ->
-        
+    async def get_user_by_email(self,email:EmailStr) ->User:
+        return await self.db.execute

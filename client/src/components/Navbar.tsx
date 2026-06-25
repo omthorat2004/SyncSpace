@@ -94,7 +94,7 @@ const Navbar = () => {
 
                         <button
                             onClick={toggleTheme}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-muted"
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border  text-muted"
                             aria-label="Toggle theme"
                         >
                             {isDarkMode ? <MdSunny size={18} /> : <MdDarkMode size={18} />}
@@ -153,9 +153,9 @@ const Navbar = () => {
                                     handleLogout()
                                     setIsMobileMenuOpen(false)
                                 }}
-                                className="nav-link flex items-center gap-2 border border-destructive text-destructive hover:bg-destructive/10 transition-colors"
+                                className="nav-link flex items-center gap-2 bg-tra border border-destructive text-destructive hover:bg-destructive/10 transition-colors"
                             >
-                                <FiLogOut className='bg-transparent' size={14} />
+                                <FiLogOut className='' size={14} />
                                 Logout
                             </button>
                         </div>

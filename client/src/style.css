@@ -339,6 +339,7 @@ textarea:focus {
 .page-shell {
   background: var(--color-background);
   color: var(--color-foreground);
+  
 }
 
 .page-container {

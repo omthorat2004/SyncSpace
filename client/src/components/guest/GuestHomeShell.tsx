@@ -5,7 +5,7 @@ import GuestHero from './GuestHero';
 
 const GuestHomeShell: React.FC = () => {
     return (
-        <main className="page-shell">
+        <main className="page-shell mt-10">
             <div className="page-container">
                 <GuestHero />
                 <GuestFeatures />

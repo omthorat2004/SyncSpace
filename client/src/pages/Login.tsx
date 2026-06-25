@@ -76,7 +76,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-full bg-background text-foreground flex items-center justify-center px-4 py-12">
+    <div className="min-h-full bg-background text-foreground flex items-center justify-center px-4 py-14">
       <div className="w-full max-w-md">
         {/* Card container */}
         <div className="card rounded-2xl p-6 sm:p-8">
