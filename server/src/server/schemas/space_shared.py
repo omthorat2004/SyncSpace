@@ -14,4 +14,12 @@ class ShareSpace(BaseModel):
 
 class ShareSpaceResponse(BaseModel):
     message : str = "Space is shared successfully"
-    
+
+
+class SharedSpacesResponse(BaseModel):
+    name:str
+    permission:str
+    shared_at:datetime
+    email:str
+
+

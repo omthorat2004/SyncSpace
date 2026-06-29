@@ -9,6 +9,7 @@ from src.server.exceptions.base import AppException
 from src.server.router.auth import router as auth_router
 from src.server.router.space import router as space_router
 from src.server.router.content import router as content_router
+from src.server.router.share_space import router as share_space_router
 
 # Fetch the uvicorn error logger to use its handlers and formatters
 logger = logging.getLogger("uvicorn.error")
@@ -66,6 +67,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix=API_PREFIX)
 app.include_router(space_router, prefix=API_PREFIX)
 app.include_router(content_router, prefix=API_PREFIX)
+app.include_router(share_space_router,prefix=API_PREFIX)
 
 # Health check endpoint
 @app.get("/health", tags=["health"])

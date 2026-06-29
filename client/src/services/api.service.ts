@@ -201,7 +201,7 @@ export const protectedApi = {
     });
   },
 
-  // 🔥 Logout (NO TOKEN IN BODY)
+  
   logout: async () => {
     return axiosInstance.post(
       "/api/v1/auth/logout",
@@ -209,4 +209,15 @@ export const protectedApi = {
       { requiresAuth: true }
     );
   },
+
+
+  share_space:  ({ email, space_id ,permission}: { email: string; space_id: number,permission:string }) => {
+  return axiosInstance.post(
+    `/api/v1/share/${space_id}`,
+    { email , permission },
+    {
+      requiresAuth: true,
+    }
+  );
+  }
 };

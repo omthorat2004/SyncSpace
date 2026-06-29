@@ -12,6 +12,8 @@ import {
     FiClock
 } from 'react-icons/fi';
 import { useState } from 'react';
+import axiosInstance from '@/services/axios.config';
+import { protectedApi } from '@/services/api.service';
 
 interface SharedUser {
     id: number;
@@ -112,20 +114,13 @@ const SharedWithYou = ({ spaceId, spaceName }: SharedWithYouProps) => {
         setShowMenuFor(null);
     };
 
-    const handleInviteSubmit = (e: React.FormEvent) => {
+    const handleInviteSubmit =async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!inviteEmail) return;
 
-        const newUser: SharedUser = {
-            id: Date.now(),
-            name: inviteEmail.split('@')[0],
-            email: inviteEmail,
-            permission: invitePermission,
-            shared_at: new Date().toISOString(),
-            status: 'pending',
-        };
+        const response  = await protectedApi.share_space({email:inviteEmail,space_id:spaceId,permission:invitePermission})
 
-        setSharedUsers(prev => [newUser, ...prev]);
+        console.log(response)
         setInviteEmail('');
         setShowInviteModal(false);
         // API call to send invitation would go here
