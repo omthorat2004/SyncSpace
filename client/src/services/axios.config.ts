@@ -9,11 +9,13 @@ declare module "axios" {
   export interface AxiosRequestConfig {
     requiresAuth?: boolean
     skipRefresh?: boolean
+    redirectOnAuthFailure?: boolean
   }
 
   export interface InternalAxiosRequestConfig {
     requiresAuth?: boolean
     skipRefresh?: boolean
+    redirectOnAuthFailure?: boolean
     _retry?: boolean
   }
 }
@@ -54,10 +56,13 @@ axiosInstance.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       originalRequest?.requiresAuth &&
-      !originalRequest.skipRefresh &&
       !originalRequest._retry &&
       !originalRequest.url?.includes("/auth/refresh")
     ) {
+      if (originalRequest.skipRefresh) {
+        return Promise.reject(error)
+      }
+
       originalRequest._retry = true
 
 
@@ -85,8 +90,11 @@ axiosInstance.interceptors.response.use(
 
         return axiosInstance(originalRequest)
       } catch (refreshError) {
+        if (typeof window !== "undefined") {
+          window.history.replaceState({}, "", "/login")
+          window.dispatchEvent(new PopStateEvent("popstate"))
+        }
 
-        window.location.href = "/login"
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

@@ -8,7 +8,7 @@ export const publicApi = {
   },
 
   getCurrentUser: async () => {
-    return axiosInstance.get("/api/v1/auth/me", { requiresAuth: true, skipRefresh: true });
+    return axiosInstance.get("/api/v1/auth/me", { requiresAuth: true, redirectOnAuthFailure: false });
   },
 
   login: async (email: string, password: string) => {
@@ -63,7 +63,7 @@ export const publicApi = {
 export const protectedApi = {
   // User Profile
   getCurrentUser: async () => {
-    return axiosInstance.get("/api/v1/auth/me", { requiresAuth: true, skipRefresh: true });
+    return axiosInstance.get("/api/v1/auth/me", { requiresAuth: true, redirectOnAuthFailure: false });
   },
 
   updateProfile: async (data: { name?: string; email?: string }) => {
