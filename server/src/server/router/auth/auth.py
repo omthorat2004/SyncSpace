@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Request, Response, status
 from src.server.core.constants import REFRESH_COOKIE_NAME
+from src.server.dependencies.auth import get_current_user
 from src.server.dependencies.service import get_auth_service, get_token_service
 from src.server.exceptions.auth_exceptions import InvalidRefreshTokenException
 from src.server.schemas.auth import (CreateUserRequest, CreateUserResponse,
@@ -56,6 +57,11 @@ async def login(
 		access_token=access_token,
 		refresh_token=refresh_token,
 	)
+
+
+@router.get("/me", response_model=User)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
 
 
 @router.post("/refresh", response_model=RefreshTokenResponse)

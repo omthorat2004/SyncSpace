@@ -8,19 +8,10 @@ import type {
 import { publicApi } from '@/services/api.service'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { AxiosError } from 'axios'
-import { setLocalStorage } from '@/utils'
-import { ACCESS_TOKEN,REFRESH_TOKEN } from '@/constants'
 
 
 
-// Util functions
 
-function _setLocalStorage(accessToken: string, refreshToken: string) {
-  setLocalStorage(
-    { key: ACCESS_TOKEN, value: accessToken },
-    { key: REFRESH_TOKEN, value: refreshToken }
-  )
-}
 
 // ============================================================
 // Async Thunks
@@ -28,8 +19,6 @@ function _setLocalStorage(accessToken: string, refreshToken: string) {
 
 const normalizeAuthResponse = (data: AuthApiResponse): AuthResponse => ({
   user: data.user,
-  accessToken: data.access_token,
-  refreshToken: data.refresh_token,
 })
 
 const extractErrorMessage = (err: unknown, fallbackMessage: string): string => {
@@ -89,6 +78,22 @@ export const refreshSession = createAsyncThunk<AuthResponse, void, { rejectValue
   }
 )
 
+export const getCurrentUser = createAsyncThunk<AuthResponse, void, { rejectValue: string }>(
+  'auth/getCurrentUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await publicApi.getCurrentUser()
+      return normalizeAuthResponse(response.data)
+    } catch (err) {
+      return rejectWithValue(extractErrorMessage(err, 'Unable to load session'))
+    }
+  }
+)
+
+
+
+
+
 
 
 
@@ -97,12 +102,10 @@ export const refreshSession = createAsyncThunk<AuthResponse, void, { rejectValue
 // ============================================================
 
 const initialState: AuthState = {
-  isAuthenticated: !!localStorage.getItem(ACCESS_TOKEN),
-  accessToken: localStorage.getItem(ACCESS_TOKEN)||'',
-  refreshToken: localStorage.getItem(REFRESH_TOKEN)||'',
+  isAuthenticated: false,
   user: null,
   loading: false,
-  error: null
+  error: null,
 }
 
 // ============================================================
@@ -116,12 +119,11 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null
     },
-    resetAuthState: (state) =>{
-      state.accessToken = ''
-      state.refreshToken = ''
+    resetAuthState: (state) => {
       state.isAuthenticated = false
-      localStorage.clear()
-      
+      state.user = null
+      state.loading = false
+      state.error = null
     },
     updateUserProfile: (state, action: PayloadAction<Partial<typeof state.user>>) => {
       if (state.user) {
@@ -142,17 +144,12 @@ const authSlice = createSlice({
         state.loading = false
         state.isAuthenticated = true
         state.user = action.payload.user
-        state.accessToken = action.payload.accessToken
-        state.refreshToken = action.payload.refreshToken
-        _setLocalStorage(state.accessToken,state.refreshToken)
         state.error = null
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false
         state.isAuthenticated = false
         state.user = null
-        state.accessToken = ''
-        state.refreshToken = ''
         state.error = action.payload as string
       })
 
@@ -164,20 +161,12 @@ const authSlice = createSlice({
         state.loading = false
         state.isAuthenticated = true
         state.user = action.payload.user
-
-        state.accessToken = action.payload.accessToken
-        state.refreshToken = action.payload.refreshToken
-
-        _setLocalStorage(state.accessToken,state.refreshToken)
-
         state.error = null
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
         state.isAuthenticated = false
         state.user = null
-        state.accessToken = ''
-        state.refreshToken = ''
         state.error = action.payload as string
       })
 
@@ -189,16 +178,30 @@ const authSlice = createSlice({
         state.loading = false
         state.isAuthenticated = true
         state.user = action.payload.user
-        state.accessToken = action.payload.accessToken
-        state.refreshToken = action.payload.refreshToken
         state.error = null
       })
       .addCase(refreshSession.rejected, (state) => {
         state.loading = false
         state.isAuthenticated = false
         state.user = null
-        state.accessToken = ''
-        state.refreshToken = ''
+        state.error = null
+      })
+
+      .addCase(getCurrentUser.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(getCurrentUser.fulfilled, (state, action) => {
+        state.loading = false
+        state.isAuthenticated = true
+        state.user = action.payload.user
+        state.error = null
+      })
+      .addCase(getCurrentUser.rejected, (state) => {
+        state.loading = false
+        state.isAuthenticated = false
+        state.user = null
+        state.error = null
       })
   }
 })
@@ -218,12 +221,6 @@ export const selectAuthLoading = (state: { auth: AuthState }) =>
 
 export const selectAuthError = (state: { auth: AuthState }) =>
   state.auth.error
-
-export const selectAccessToken = (state: { auth: AuthState }) =>
-  state.auth.accessToken
-
-export const selectRefreshToken = (state: { auth: AuthState }) =>
-  state.auth.refreshToken
 
 export const { clearError, resetAuthState, updateUserProfile, setAuthState } =
   authSlice.actions

@@ -7,6 +7,9 @@ export const publicApi = {
     return axiosInstance.get("/health", { requiresAuth: false });
   },
 
+  getCurrentUser: async () => {
+    return axiosInstance.get("/api/v1/auth/me", { requiresAuth: true, skipRefresh: true });
+  },
 
   login: async (email: string, password: string) => {
     return axiosInstance.post(
@@ -60,7 +63,7 @@ export const publicApi = {
 export const protectedApi = {
   // User Profile
   getCurrentUser: async () => {
-    return axiosInstance.get("/api/v1/user/me", { requiresAuth: true });
+    return axiosInstance.get("/api/v1/auth/me", { requiresAuth: true, skipRefresh: true });
   },
 
   updateProfile: async (data: { name?: string; email?: string }) => {

@@ -8,10 +8,12 @@ import axios, {
 declare module "axios" {
   export interface AxiosRequestConfig {
     requiresAuth?: boolean
+    skipRefresh?: boolean
   }
 
   export interface InternalAxiosRequestConfig {
     requiresAuth?: boolean
+    skipRefresh?: boolean
     _retry?: boolean
   }
 }
@@ -32,10 +34,11 @@ const notifySubscribers = () => {
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_URL,
   timeout: 30000,
-  withCredentials: true,
+  withCredentials:true,
   headers: {
     "Content-Type": "application/json",
   },
+
 })
 
 // ============================================================
@@ -51,6 +54,7 @@ axiosInstance.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       originalRequest?.requiresAuth &&
+      !originalRequest.skipRefresh &&
       !originalRequest._retry &&
       !originalRequest.url?.includes("/auth/refresh")
     ) {

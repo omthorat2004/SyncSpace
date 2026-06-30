@@ -3,14 +3,15 @@ import GuestFooter from '@/components/GuestFooter';
 import GuestNavbar from '@/components/GuestNavbar';
 import LoadingShimmer from '@/components/LoadingShimmer';
 import Navbar from '@/components/Navbar';
-import { selectAuthLoading } from '@/features/auth/authenticationSlice';
+import { getCurrentUser, selectAuthLoading } from '@/features/auth/authenticationSlice';
 import GuestHome from '@/pages/GuestHome';
 import Home from '@/pages/Home';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import SpaceDetail from '@/pages/SpaceDetail';
 import { AuthRedirect, PrivateRoute } from '@/routes';
-import { useAppSelector } from '@/store/hook';
+import { useAppDispatch, useAppSelector } from '@/store/hook';
+import { useEffect } from 'react';
 import { Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
 
 function AppShell() {
@@ -37,15 +38,12 @@ function AppShell() {
 }
 
 function App() {
-
+  const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectAuthLoading);
 
-
-
-
-  // useEffect(() => {
-  //   void dispatch(refreshSession())
-  // }, [dispatch]);
+  useEffect(() => {
+    void dispatch(getCurrentUser())
+  }, [dispatch]);
 
   if (isLoading) {
     return <LoadingShimmer />;

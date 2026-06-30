@@ -19,18 +19,16 @@ export interface LoginFormData {
  * Authenticated user object returned from backend
  */
 export interface AuthUser {
-  id: string
+  id: number
   name: string
   email: string
 }
 
 /**
  * Standard auth API response
- * Returned from both signup and login endpoints
+ * Returned from signup, login, and current-user endpoints
  */
 export interface AuthResponse {
-  accessToken: string
-  refreshToken: string
   user: AuthUser
 }
 
@@ -38,8 +36,8 @@ export interface AuthResponse {
  * Raw auth response shape from backend (FastAPI/Pydantic)
  */
 export interface AuthApiResponse {
-  access_token: string
-  refresh_token: string
+  access_token?: string
+  refresh_token?: string
   user: AuthUser
 }
 
@@ -52,10 +50,6 @@ export interface AuthState {
 
   // User data
   user: AuthUser | null
-
-  // Tokens
-  accessToken: string
-  refreshToken: string
 
   // UI states
   loading: boolean

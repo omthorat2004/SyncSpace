@@ -26,6 +26,7 @@ const SpaceDetail = () => {
     useEffect(() => {
         if (spaceIdNum > 0) {
             dispatch(fetchContents({ spaceId: spaceIdNum }));
+            
         }
     }, [spaceIdNum, dispatch]);
 
