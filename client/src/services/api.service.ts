@@ -37,6 +37,15 @@ export const publicApi = {
     );
   },
 
+  // Logout
+  logout: async () => {
+    return axiosInstance.post(
+      "/api/v1/auth/logout",
+      {},
+      { requiresAuth: true }
+    );
+  },
+
   // Forgot password
   forgotPassword: async (email: string) => {
     return axiosInstance.post(
@@ -188,6 +197,49 @@ export const protectedApi = {
       params: { q: query, ...filters },
       requiresAuth: true,
     });
+  },
+
+  // Share Space - Share a space with another user
+  shareSpace: async (spaceId: number, userEmail: string,permission:string) => {
+    return axiosInstance.post(
+      `/api/v1/share/${spaceId}`,
+      { email: userEmail,permission },
+      { requiresAuth: true }
+    );
+  },
+
+  // Share Space - Get all users a space is shared with
+  getSharedUsers: async (spaceId: number) => {
+    return axiosInstance.get(
+      `/api/v1/share/${spaceId}`,
+      { requiresAuth: true }
+    );
+  },
+
+  // Share Space - Update user permission
+  updateSharePermission: async (spaceId: number, userId: number, permission: 'view' | 'edit') => {
+    return axiosInstance.put(
+      `/api/v1/share/${spaceId}/${userId}`,
+      { permission },
+      { requiresAuth: true }
+    );
+  },
+
+  // Share Space - Remove user access
+  removeSharedUser: async (spaceId: number, userId: number) => {
+    return axiosInstance.delete(
+      `/api/v1/share/${spaceId}/${userId}`,
+      { requiresAuth: true }
+    );
+  },
+
+  // Share Space - Resend invitation
+  resendShareInvite: async (spaceId: number, userId: number) => {
+    return axiosInstance.post(
+      `/api/v1/share/${spaceId}/${userId}/resend`,
+      {},
+      { requiresAuth: true }
+    );
   },
 
   // Tags

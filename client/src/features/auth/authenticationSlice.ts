@@ -90,6 +90,19 @@ export const getCurrentUser = createAsyncThunk<AuthResponse, void, { rejectValue
   }
 )
 
+export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
+    try {
+      await publicApi.logout()
+      // Return undefined on success
+      return
+    } catch (err) {
+      return rejectWithValue(extractErrorMessage(err, 'An error occurred during logout'))
+    }
+  }
+)
+
 
 
 
@@ -111,6 +124,7 @@ const initialState: AuthState = {
 // ============================================================
 // Slice
 // ============================================================
+
 
 const authSlice = createSlice({
   name: 'auth',
@@ -202,6 +216,21 @@ const authSlice = createSlice({
         state.isAuthenticated = false
         state.user = null
         state.error = null
+      })
+
+      .addCase(logout.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(logout.fulfilled, (state) => {
+        state.loading = false
+        state.isAuthenticated = false
+        state.user = null
+        state.error = null
+      })
+      .addCase(logout.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
       })
   }
 })

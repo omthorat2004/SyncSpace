@@ -1,4 +1,4 @@
-import { resetAuthState } from '@/features/auth/authenticationSlice'
+import { logout, resetAuthState } from '@/features/auth/authenticationSlice'
 import { openCreateModal } from '@/features/space/spaceSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hook'
 import { useEffect, useState } from 'react'
@@ -48,9 +48,15 @@ const Navbar = () => {
         setIsDarkMode(true)
     }
 
-    const handleLogout = () => {
-        dispatch(resetAuthState())
-        navigate('/login')
+    const handleLogout = async () => {
+        try {
+            await dispatch(logout()).unwrap()
+            navigate('/login')
+        } catch (error) {
+            // If logout fails, still clear local state and redirect
+            dispatch(resetAuthState())
+            navigate('/login')
+        }
     }
 
     const handleCreateSpace = () => {

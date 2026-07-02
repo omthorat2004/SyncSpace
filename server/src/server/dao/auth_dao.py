@@ -1,4 +1,4 @@
-from sqlalchemy import select, update
+from sqlalchemy import select, update,delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.server.models.auth_models import RefreshToken, User
 
@@ -79,3 +79,7 @@ class AuthDAO:
             .values(valid=False)
         )
         await self.db.commit()
+        
+    async def delete_refresh_token(self,user_id:int):
+        await self.db.execute(delete(RefreshToken).where(RefreshToken.user_id==user_id))
+        

@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 
 import authReducer from "@/features/auth/authenticationSlice";
 import contentReducer from "@/features/content/contentSlice";
+import sharedSpaceReducer from "@/features/shared-spaces/sharedSpaceSlice";
 import spaceReducer from "@/features/space/spaceSlice";
 
 export const store = configureStore({
@@ -9,6 +10,7 @@ export const store = configureStore({
     auth: authReducer,
     space: spaceReducer,
     content: contentReducer,
+    sharedSpace: sharedSpaceReducer,
   },
 });
 

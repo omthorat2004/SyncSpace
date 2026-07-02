@@ -54,4 +54,11 @@ class RefreshTokenRequest(BaseModel):
         default=None,
         validation_alias=AliasChoices("refresh_token", "refreshToken"),
     )
+    
+
+
+
+
+class LogoutResponseModel(BaseModel):
+    message : str = "Logout successfully!"
 

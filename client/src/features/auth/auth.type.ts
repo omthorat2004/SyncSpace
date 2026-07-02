@@ -42,6 +42,13 @@ export interface AuthApiResponse {
 }
 
 /**
+ * Logout API response
+ */
+export interface LogoutResponse {
+  message: string
+}
+
+/**
  * Redux auth state shape
  */
 export interface AuthState {

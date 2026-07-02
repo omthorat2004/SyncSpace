@@ -1,15 +1,18 @@
 from fastapi import APIRouter, Depends, Request, Response, status
 from src.server.core.constants import REFRESH_COOKIE_NAME
-from src.server.dependencies.auth import get_current_user
+from src.server.dependencies.auth import get_current_user, get_current_user_id
 from src.server.dependencies.service import get_auth_service, get_token_service
 from src.server.exceptions.auth_exceptions import InvalidRefreshTokenException
 from src.server.schemas.auth import (CreateUserRequest, CreateUserResponse,
                                      LoginRequest, LoginResponse,
-                                     RefreshTokenRequest, RefreshTokenResponse)
+                                     RefreshTokenRequest, RefreshTokenResponse,LogoutResponseModel)
 from src.server.schemas.user import User
 from src.server.services.auth.auth_service import AuthService
 from src.server.services.auth.token_service import TokenService
 from src.server.utils.auth_utils import get_client_ip, set_auth_cookies
+from src.server.core.constants import ACCESS_COOKIE_NAME
+
+from typing import Annotated
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -84,3 +87,14 @@ async def refresh_token(
 		access_token=access_token,
 		refresh_token=rotated_refresh_token,
 	)
+
+
+
+
+@router.post("/logout",response_model=LogoutResponseModel,status_code=status.HTTP_200_OK)
+async def logout(response:Response,user_id : Annotated[int,Depends(get_current_user_id)],token_service : Annotated[TokenService,Depends(get_token_service)]):
+    await token_service.delete_refresh_token(user_id)
+    response.delete_cookie(ACCESS_COOKIE_NAME)
+    return LogoutResponseModel()
+    
+    

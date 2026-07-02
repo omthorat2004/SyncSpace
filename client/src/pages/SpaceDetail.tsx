@@ -1,13 +1,14 @@
 import { ContentCardSkeleton } from "@/components/skeleton/ContentCardSkeleton";
 import { ContentCard } from "@/features/content/components/ContentCard";
 import { CreateContentModal } from "@/features/content/components/CreateContentModal";
-import SharedWithYou from "@/features/shared-spaces/components/SharedWithYou"; // Add this import
 import { type ContentType } from "@/features/content/content.type";
 import { fetchContents } from "@/features/content/contentSlice";
+import SharedWithYou from "@/features/shared-spaces/components/SharedWithYou";
+import { getSharedUsers, shareSpace } from "@/features/shared-spaces/sharedSpaceSlice";
 
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 import { useEffect, useState } from "react";
-import { FiArrowLeft, FiPlus, FiUsers } from "react-icons/fi"; // Add FiUsers
+import { FiArrowLeft, FiPlus } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 
 const SpaceDetail = () => {
@@ -26,7 +27,7 @@ const SpaceDetail = () => {
     useEffect(() => {
         if (spaceIdNum > 0) {
             dispatch(fetchContents({ spaceId: spaceIdNum }));
-            
+            dispatch(getSharedUsers(spaceIdNum));
         }
     }, [spaceIdNum, dispatch]);
 
@@ -115,11 +116,10 @@ const SpaceDetail = () => {
                             <button
                                 key={type}
                                 onClick={() => setSelectedType(type)}
-                                className={`px-4 py-2 rounded-full transition-colors ${
-                                    selectedType === type
+                                className={`px-4 py-2 rounded-full transition-colors ${selectedType === type
                                         ? "bg-foreground text-background"
                                         : "bg-surface-container text-muted hover:bg-surface-container-high"
-                                }`}
+                                    }`}
                             >
                                 {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
                             </button>
@@ -186,8 +186,13 @@ const SpaceDetail = () => {
                     </div>
                 </div>
 
-                {/* Shared With You Section - ADD THIS */}
-                <SharedWithYou spaceId={spaceIdNum} spaceName={spaceName} />
+                {/* Shared With You Section */}
+                <SharedWithYou
+                    spaceId={spaceIdNum}
+                    spaceName={spaceName}
+                    onShareSpace={(userEmail: string,permission:string) => dispatch(shareSpace({ spaceId: spaceIdNum, userEmail ,permission}))}
+                    onRefresh={() => dispatch(getSharedUsers(spaceIdNum))}
+                />
             </div>
 
             {/* Create Content Modal */}
