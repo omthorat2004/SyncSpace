@@ -4,11 +4,11 @@ import { useAppDispatch, useAppSelector } from '@/store/hook'
 import { useState } from 'react'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { MdEmail, MdVisibility, MdVisibilityOff } from 'react-icons/md'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { Toaster } from 'sonner'
 
 export default function Login() {
   const dispatch = useAppDispatch()
-  const navigate = useNavigate()
   const { loading, error } = useAppSelector((state) => state.auth)
 
   const [formData, setFormData] = useState<LoginFormData>({
@@ -65,10 +65,7 @@ export default function Login() {
 
     try {
       await dispatch(login(formData)).unwrap()
-      // Navigate to dashboard after successful login
-      navigate('/dashboard', {
-        replace: true
-      })
+      // AuthRedirect will handle navigation to dashboard after isAuthenticated is set
     } catch (err) {
       // Error is already handled in Redux state
       console.error('Login failed:', err)
@@ -233,6 +230,7 @@ export default function Login() {
           </p>
         </div>
       </div>
+      <Toaster/>
     </div>
   )
 }

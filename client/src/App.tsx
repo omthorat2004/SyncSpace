@@ -45,9 +45,7 @@ function App() {
     void dispatch(getCurrentUser())
   }, [dispatch]);
 
-  if (isLoading) {
-    return <LoadingShimmer />;
-  }
+  
 
   return (
     <Router>

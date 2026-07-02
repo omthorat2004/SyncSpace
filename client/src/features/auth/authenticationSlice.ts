@@ -9,7 +9,7 @@ import { publicApi } from '@/services/api.service'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { AxiosError } from 'axios'
 
-
+import { Toaster, toast } from 'sonner';
 
 
 
@@ -61,6 +61,7 @@ export const login = createAsyncThunk<AuthResponse, LoginFormData, { rejectValue
       const response = await publicApi.login(body.email, body.password)
       return normalizeAuthResponse(response.data)
     } catch (err) {
+      console.log(err)
       return rejectWithValue(extractErrorMessage(err, 'An error occurred during login'))
     }
   }
@@ -182,6 +183,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false
         state.user = null
         state.error = action.payload as string
+        toast.error(state.error)
       })
 
       .addCase(refreshSession.pending, (state) => {
