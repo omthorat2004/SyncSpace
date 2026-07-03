@@ -71,7 +71,15 @@ export default function Login() {
       console.error('Login failed:', err)
     }
   }
-
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirectPath = localStorage.getItem('redirectAfterLogin')
+      if (redirectPath) {
+        localStorage.removeItem('redirectAfterLogin')
+        navigate(redirectPath)
+      }
+    }
+  }, [isAuthenticated, navigate])
   return (
     <div className="min-h-full bg-background text-foreground flex items-center justify-center px-4 py-14">
       <div className="w-full max-w-md">

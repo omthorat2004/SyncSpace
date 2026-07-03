@@ -1,3 +1,4 @@
+// AuthRedirect.tsx
 import { useAppSelector } from '@/store/hook'
 import { Navigate } from 'react-router-dom'
 
@@ -8,12 +9,13 @@ interface AuthRedirectProps {
 /**
  * AuthRedirect Component
  * Redirects authenticated users away from auth pages
- * - If logged in: redirects to dashboard
- * - If not logged in: shows the auth page
+ * - If authenticated: redirects to dashboard
+ * - If not authenticated: shows the auth page
  */
 export default function AuthRedirect({ children }: AuthRedirectProps) {
   const { isAuthenticated } = useAppSelector((state) => state.auth)
 
+  // Since isAuthenticated defaults to true, we only redirect if true
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />
   }

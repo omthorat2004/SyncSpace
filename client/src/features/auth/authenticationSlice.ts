@@ -116,7 +116,7 @@ export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
 // ============================================================
 
 const initialState: AuthState = {
-  isAuthenticated: false,
+  isAuthenticated: true,
   user: null,
   loading: false,
   error: null,
