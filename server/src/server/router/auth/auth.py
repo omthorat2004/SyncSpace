@@ -11,6 +11,7 @@ from src.server.services.auth.auth_service import AuthService
 from src.server.services.auth.token_service import TokenService
 from src.server.utils.auth_utils import get_client_ip, set_auth_cookies
 from src.server.core.constants import ACCESS_COOKIE_NAME
+from src.server.schemas.auth import ReturnUserResponse
 
 from typing import Annotated
 
@@ -62,9 +63,12 @@ async def login(
 	)
 
 
-@router.get("/me", response_model=User)
+
+
+@router.get("/me", response_model=ReturnUserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
+    print(current_user)
+    return ReturnUserResponse(user=current_user)
 
 
 @router.post("/refresh", response_model=RefreshTokenResponse)

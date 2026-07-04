@@ -1,182 +1,35 @@
-import { protectedApi } from '@/services/api.service';
-import { useEffect, useRef, useState } from 'react';
-import {
-    FiCheck,
-    FiClock,
-    FiEdit2,
-    FiEye,
-    FiMail,
-    FiMoreVertical,
-    FiTrash2,
-    FiUserPlus,
-    FiUsers,
-    FiX
-} from 'react-icons/fi';
+// index.tsx - Main SharedWithYou Component
+import { useAppSelector } from '@/store/hook';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-interface SharedUser {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-    permission: 'view' | 'edit';
-    shared_at: string;
-    status: 'active' | 'pending';
-}
+import { StatsCards } from './StatsCards';
+import { UserTable } from './UserTable';
+import { EmptyState } from './EmptyState';
 
-interface SharedWithYouProps {
-    spaceId: number;
-    spaceName?: string;
-    onShareSpace?: (userEmail: string,permission:string) => Promise<any>;
-    onRefresh?: () => Promise<any>;
-}
+import { InviteModal } from './InviteModal';
+import { ErrorAlert } from './ErrorAlert';
+import { useSharedUsers } from '../hooks/useSharedUsers';
+import {type SharedWithYouProps } from '../types';
+import { LoadingState } from './LoadingState';
+import { SharedHeader } from './SharedHeader';
+
 
 const SharedWithYou = ({ spaceId, spaceName, onShareSpace, onRefresh }: SharedWithYouProps) => {
-    const [sharedUsers, setSharedUsers] = useState<SharedUser[]>([]);
     const [showInviteModal, setShowInviteModal] = useState(false);
-    const [showMenuFor, setShowMenuFor] = useState<number | null>(null);
-    const [inviteEmail, setInviteEmail] = useState('');
-    const [invitePermission, setInvitePermission] = useState<'view' | 'edit'>('view');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-    const modalRef = useRef<HTMLDivElement>(null);
-
-    // Fetch shared users on mount and when spaceId changes
-    useEffect(() => {
-        fetchSharedUsers();
-    }, [spaceId]);
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setShowMenuFor(null);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    // Close modal on Escape key
-    useEffect(() => {
-        const handleEsc = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                setShowInviteModal(false);
-                setShowMenuFor(null);
-            }
-        };
-        document.addEventListener('keydown', handleEsc);
-        return () => document.removeEventListener('keydown', handleEsc);
-    }, []);
-
-    const fetchSharedUsers = async () => {
-        try {
-            setLoading(true);
-            const response = await protectedApi.getSharedUsers(spaceId);
-            setSharedUsers(response.data || []);
-            setError(null);
-        } catch (err) {
-            console.error('Failed to fetch shared users:', err);
-            setError('Failed to fetch shared users');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffTime = Math.abs(now.getTime() - date.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays} days ago`;
-        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    };
-
-    const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map(word => word[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
-    };
-
-    const handlePermissionChange = async (userId: number, newPermission: 'view' | 'edit') => {
-        try {
-            setIsSubmitting(true);
-            await protectedApi.updateSharePermission(spaceId, userId, newPermission);
-            setSharedUsers(prev => prev.map(user =>
-                user.id === userId ? { ...user, permission: newPermission } : user
-            ));
-            setShowMenuFor(null);
-            setError(null);
-        } catch (err) {
-            console.error('Failed to update permission:', err);
-            setError('Failed to update permission');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleRemoveUser = async (userId: number) => {
-        if (!confirm('Are you sure you want to remove this user\'s access?')) return;
-
-        try {
-            setIsSubmitting(true);
-            await protectedApi.removeSharedUser(spaceId, userId);
-            setSharedUsers(prev => prev.filter(user => user.id !== userId));
-            setShowMenuFor(null);
-            setError(null);
-        } catch (err) {
-            console.error('Failed to remove user:', err);
-            setError('Failed to remove user access');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleResendInvite = async (userId: number) => {
-        try {
-            setIsSubmitting(true);
-            await protectedApi.resendShareInvite(spaceId, userId);
-            setShowMenuFor(null);
-            setError(null);
-            // Optionally show success toast
-        } catch (err) {
-            console.error('Failed to resend invite:', err);
-            setError('Failed to resend invitation');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleInviteSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (!inviteEmail || !onShareSpace) return;
-
-        try {
-            setIsSubmitting(true);
-            await onShareSpace(inviteEmail,invitePermission);
-            setInviteEmail('');
-            setShowInviteModal(false);
-            setError(null);
-            // Refresh the shared users list
-            if (onRefresh) {
-                await onRefresh();
-            }
-            await fetchSharedUsers();
-        } catch (err) {
-            console.error('Failed to share space:', err);
-            setError('Failed to share space');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    const user = useAppSelector((state) => state.auth.user);
+    
+    const {
+        sharedUsers,
+        loading,
+        error,
+        isSubmitting,
+        fetchSharedUsers,
+        updatePermission,
+        removeUser,
+        resendInvite,
+        setError,
+    } = useSharedUsers(spaceId);
 
     const stats = {
         total: sharedUsers.length,
@@ -185,332 +38,63 @@ const SharedWithYou = ({ spaceId, spaceName, onShareSpace, onRefresh }: SharedWi
         pending: sharedUsers.filter(u => u.status === 'pending').length,
     };
 
-    // Dropdown Menu Component
-    const DropdownMenu = ({ user }: { user: SharedUser }) => {
-        return (
-            <div
-                ref={menuRef}
-                className="absolute right-0 top-full mt-1 z-50 w-56 bg-card border border-border rounded-lg shadow-lg overflow-hidden"
-            >
-                <div className="py-1">
-                    <div className="px-3 py-2 text-xs font-semibold text-muted border-b border-border">
-                        Change permission
-                    </div>
-                    <button
-                        onClick={() => handlePermissionChange(user.id, 'edit')}
-                        disabled={isSubmitting}
-                        className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface-container transition-colors ${user.permission === 'edit' ? 'text-accent' : 'text-foreground'
-                            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        <FiEdit2 size={14} />
-                        Can edit
-                        {user.permission === 'edit' && <FiCheck size={14} className="ml-auto" />}
-                    </button>
-                    <button
-                        onClick={() => handlePermissionChange(user.id, 'view')}
-                        disabled={isSubmitting}
-                        className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface-container transition-colors ${user.permission === 'view' ? 'text-accent' : 'text-foreground'
-                            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        <FiEye size={14} />
-                        Can view
-                        {user.permission === 'view' && <FiCheck size={14} className="ml-auto" />}
-                    </button>
-                    <div className="border-t border-border my-1"></div>
-                    {user.status === 'pending' && (
-                        <button
-                            onClick={() => handleResendInvite(user.id)}
-                            disabled={isSubmitting}
-                            className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface-container transition-colors text-foreground ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
-                        >
-                            <FiMail size={14} />
-                            Resend invite
-                        </button>
-                    )}
-                    <button
-                        onClick={() => handleRemoveUser(user.id)}
-                        disabled={isSubmitting}
-                        className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-destructive/10 transition-colors text-destructive ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                    >
-                        <FiTrash2 size={14} />
-                        Remove access
-                    </button>
-                </div>
-            </div>
-        );
+    const handleInviteSubmit = async (email: string, permission: 'view' | 'edit') => {
+        if (!onShareSpace) {
+            toast.error('Share function is not available');
+            return;
+        }
+
+        try {
+            await onShareSpace(email, permission);
+            toast.success(`Invitation sent to ${email}`);
+            
+            if (onRefresh) {
+                await onRefresh();
+            }
+            await fetchSharedUsers();
+        } catch (err) {
+            console.error('Failed to share space:', err);
+            toast.error('Failed to send invitation');
+            throw err;
+        }
+    };
+
+    const handleRefresh = () => {
+        fetchSharedUsers();
     };
 
     return (
-        <div className="mt-12">
-            {/* Error Alert */}
-            {error && (
-                <div className="mb-6 p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm flex items-start justify-between">
-                    <span>{error}</span>
-                    <button
-                        onClick={() => setError(null)}
-                        className="text-destructive hover:text-destructive/80"
-                        aria-label="Dismiss error"
-                    >
-                        <FiX size={16} />
-                    </button>
-                </div>
-            )}
+        <div className="mt-8 sm:mt-12">
+            <ErrorAlert error={error} onDismiss={() => setError(null)} />
 
-            {/* Header Section */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                <div>
-                    <div className="flex items-center gap-2 mb-2">
-                        <FiUsers className="text-muted" size={20} />
-                        <h2 className="text-xl font-semibold text-foreground">Shared with others</h2>
-                    </div>
-                    <p className="text-sm text-muted">
-                        Manage who has access to "{spaceName || 'this space'}"
-                    </p>
-                </div>
+            <SharedHeader
+                spaceName={spaceName}
+                onInviteClick={() => setShowInviteModal(true)}
+            />
 
-                <button
-                    onClick={() => setShowInviteModal(true)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-foreground text-background hover:bg-secondary transition-colors font-medium"
-                >
-                    <FiUserPlus size={16} />
-                    Invite People
-                </button>
-            </div>
+            <StatsCards stats={stats} />
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                <div className="rounded-xl border border-border bg-card p-3">
-                    <p className="text-xs text-muted">Total collaborators</p>
-                    <p className="text-xl font-bold mt-1">{stats.total}</p>
-                </div>
-                <div className="rounded-xl border border-border bg-card p-3">
-                    <p className="text-xs text-muted">Can edit</p>
-                    <p className="text-xl font-bold mt-1 text-accent">{stats.editors}</p>
-                </div>
-                <div className="rounded-xl border border-border bg-card p-3">
-                    <p className="text-xs text-muted">Can view</p>
-                    <p className="text-xl font-bold mt-1 text-muted">{stats.viewers}</p>
-                </div>
-                <div className="rounded-xl border border-border bg-card p-3">
-                    <p className="text-xs text-muted">Pending invites</p>
-                    <p className="text-xl font-bold mt-1 text-warning">{stats.pending}</p>
-                </div>
-            </div>
-
-            {/* Users List */}
             {loading ? (
-                <div className="rounded-xl border border-border bg-card p-12 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
-                    <p className="mt-4 text-sm text-muted">Loading collaborators...</p>
-                </div>
+                <LoadingState />
             ) : sharedUsers.length > 0 ? (
-                <div className="rounded-xl border border-border bg-card overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-surface-container border-b border-border">
-                                <tr>
-                                    <th className="text-left px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">User</th>
-                                    <th className="text-left px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Permission</th>
-                                    <th className="text-left px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Shared</th>
-                                    <th className="text-right px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {sharedUsers.map((user) => (
-                                    <tr key={user.id} className="border-b border-border hover:bg-surface-container/50 transition-colors">
-                                        <td className="px-5 py-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center shrink-0">
-                                                    {user.avatar ? (
-                                                        <img
-                                                            src={user.avatar}
-                                                            alt={user.name}
-                                                            className="w-full h-full rounded-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <span className="text-sm font-semibold text-muted">
-                                                            {getInitials(user.name)}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
-                                                    <div className="flex items-center gap-1 text-xs text-muted">
-                                                        <FiMail size={10} className="shrink-0" />
-                                                        <span className="truncate">{user.email}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-5 py-3">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${user.permission === 'edit'
-                                                    ? 'bg-accent/10 text-accent'
-                                                    : 'bg-muted/10 text-muted'
-                                                }`}>
-                                                {user.permission === 'edit' ? (
-                                                    <FiEdit2 size={11} />
-                                                ) : (
-                                                    <FiEye size={11} />
-                                                )}
-                                                {user.permission === 'edit' ? 'Can edit' : 'Can view'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-3">
-                                            <div className="flex items-center gap-1.5 text-xs text-muted">
-                                                <FiClock size={11} />
-                                                <span>{formatDate(user.shared_at)}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-5 py-3 text-right relative">
-                                            <button
-                                                onClick={() => setShowMenuFor(showMenuFor === user.id ? null : user.id)}
-                                                className="p-1.5 rounded-lg hover:bg-surface-container transition-colors"
-                                                aria-label="More options for user"
-                                                disabled={isSubmitting}
-                                            >
-                                                <FiMoreVertical size={18} className="text-muted" />
-                                            </button>
-                                            {/* Dropdown Menu */}
-                                            {showMenuFor === user.id && (
-                                                <DropdownMenu user={user} />
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <UserTable
+                    users={sharedUsers}
+                    isSubmitting={isSubmitting}
+                    onPermissionChange={updatePermission}
+                    onRemove={removeUser}
+                    onResend={resendInvite}
+                />
             ) : (
-                /* Empty State */
-                <div className="rounded-xl border border-border bg-card p-12 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center">
-                            <FiUsers size={32} className="text-muted" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold text-foreground mb-1">No collaborators yet</h3>
-                            <p className="text-sm text-muted max-w-md">
-                                Invite people to collaborate on this space.
-                                They can view or edit content based on the permissions you set.
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => setShowInviteModal(true)}
-                            className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-foreground text-background hover:bg-secondary transition-colors font-medium"
-                        >
-                            <FiUserPlus size={16} />
-                            Invite People
-                        </button>
-                    </div>
-                </div>
+                <EmptyState onInviteClick={() => setShowInviteModal(true)} />
             )}
 
-            {/* Invite Modal */}
-            {showInviteModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
-                    <div
-                        className="fixed inset-0 bg-black/70 transition-opacity duration-200"
-                        onClick={() => setShowInviteModal(false)}
-                    />
-                    <div
-                        ref={modalRef}
-                        className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-xl"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="px-6 py-5 border-b border-border">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-lg font-bold text-foreground">Invite to Space</h3>
-                                    <p className="text-sm text-muted mt-1">Invite people to collaborate</p>
-                                </div>
-                                <button
-                                    onClick={() => setShowInviteModal(false)}
-                                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-muted hover:bg-surface-container transition-colors"
-                                    aria-label="Close modal"
-                                >
-                                    <FiX size={16} />
-                                </button>
-                            </div>
-                        </div>
-
-                        <form onSubmit={handleInviteSubmit} className="p-6 space-y-5">
-                            <div>
-                                <label className="block text-sm font-medium text-foreground mb-1.5">Email address</label>
-                                <input
-                                    type="email"
-                                    value={inviteEmail}
-                                    onChange={(e) => setInviteEmail(e.target.value)}
-                                    placeholder="colleague@example.com"
-                                    required
-                                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-foreground/20"
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-foreground mb-1.5">Permission</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setInvitePermission('view')}
-                                        className={`px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all ${invitePermission === 'view'
-                                                ? 'bg-foreground text-background'
-                                                : 'bg-surface-container text-muted hover:bg-surface-container-high'
-                                            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        disabled={isSubmitting}
-                                    >
-                                        <FiEye size={14} />
-                                        Can view
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setInvitePermission('edit')}
-                                        className={`px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all ${invitePermission === 'edit'
-                                                ? 'bg-foreground text-background'
-                                                : 'bg-surface-container text-muted hover:bg-surface-container-high'
-                                            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        disabled={isSubmitting}
-                                    >
-                                        <FiEdit2 size={14} />
-                                        Can edit
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowInviteModal(false)}
-                                    className="flex-1 px-4 py-2.5 rounded-full border border-border text-foreground hover:bg-surface-container transition-colors font-medium"
-                                    disabled={isSubmitting}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="flex-1 px-4 py-2.5 rounded-full bg-foreground text-background hover:bg-secondary transition-colors font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={isSubmitting}
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent" />
-                                            Sending...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FiUserPlus size={16} />
-                                            Send Invite
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <InviteModal
+                isOpen={showInviteModal}
+                onClose={() => setShowInviteModal(false)}
+                onSubmit={handleInviteSubmit}
+                currentUserEmail={user?.email}
+                isSubmitting={isSubmitting}
+            />
         </div>
     );
 };

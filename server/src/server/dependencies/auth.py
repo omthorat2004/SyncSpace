@@ -32,6 +32,7 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db)
 ) -> User:
     token = request.cookies.get(ACCESS_COOKIE_NAME)
+    
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -46,13 +47,15 @@ async def get_current_user(
     
     # Fetch user from database
     auth_dao = AuthDAO(db)
+    
     user = await auth_dao.get_user_by_id(payload.user_id)
+    
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
-    
+
     return User.model_validate(user)
 
 

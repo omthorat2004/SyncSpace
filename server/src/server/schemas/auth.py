@@ -61,4 +61,8 @@ class RefreshTokenRequest(BaseModel):
 
 class LogoutResponseModel(BaseModel):
     message : str = "Logout successfully!"
+    
+    
+class ReturnUserResponse(BaseModel):
+    user:User
 

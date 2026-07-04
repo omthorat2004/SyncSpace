@@ -13,6 +13,7 @@ import { AuthRedirect, PrivateRoute } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/store/hook';
 import { useEffect } from 'react';
 import { Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
+import { Toaster } from 'sonner';
 
 function AppShell() {
   const location = useLocation();
@@ -33,19 +34,19 @@ function AppShell() {
         </Routes>
       </main>
       {useLoggedInLayout ? <Footer /> : <GuestFooter />}
+      {/* ✅ Toaster inside AppShell - will be visible on all pages */}
+      <Toaster position="top-right" richColors expand={false} closeButton />
     </div>
   );
 }
 
 function App() {
   const dispatch = useAppDispatch();
-  const isLoading = useAppSelector(selectAuthLoading);
+
 
   useEffect(() => {
-    void dispatch(getCurrentUser())
+    void dispatch(getCurrentUser());
   }, [dispatch]);
-
-  
 
   return (
     <Router>
