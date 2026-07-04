@@ -57,6 +57,14 @@
   --header-bg: #ffffff;
   --shadow-card: rgba(0, 0, 0, 0.06);
   --font-body: 'Inter', sans-serif;
+   --error: #dc2626; /* Red-600 for light mode */
+  --error-container: #fef2f2; /* Red-50 */
+  --error-hover: #b91c1c; /* Red-700 */
+  --error-text: #991b1b; /* Red-800 */
+  --error-bg: #fef2f2; /* Red-50 */
+  --error-border: #fca5a5; /* Red-300 */
+  --error-soft: #fee2e2; /* Red-100 */
+  --error-surface: #fff5f5;
 }
 
 .dark {
@@ -86,6 +94,14 @@
   --link: #eeeeee;
   --link-hover: #ffffff;
   --shadow-card: rgba(0, 0, 0, 0.35);
+   --error: #f87171; /* Red-400 for dark mode */
+  --error-container: #7f1d1d; /* Red-900 */
+  --error-hover: #fca5a5; /* Red-300 */
+  --error-text: #fca5a5; /* Red-300 */
+  --error-bg: #7f1d1d; /* Red-900 */
+  --error-border: #991b1b; /* Red-800 */
+  --error-soft: #450a0a; /* Red-950 */
+  --error-surface: #1f0a0a;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -110,6 +126,14 @@
   --color-header-bg: var(--header-bg);
   --color-shadow-card: var(--shadow-card);
   --font-body: var(--font-body);
+   --color-error: var(--error);
+  --color-error-container: var(--error-container);
+  --color-error-hover: var(--error-hover);
+  --color-error-text: var(--error-text);
+  --color-error-bg: var(--error-bg);
+  --color-error-border: var(--error-border);
+  --color-error-soft: var(--error-soft);
+  --color-error-surface: var(--error-surface);
 }
 
 body {

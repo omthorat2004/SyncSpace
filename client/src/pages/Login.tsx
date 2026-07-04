@@ -1,15 +1,17 @@
 import type { LoginFormData } from '@/features/auth/auth.type'
 import { login } from '@/features/auth/authenticationSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hook'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { MdEmail, MdVisibility, MdVisibilityOff } from 'react-icons/md'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 
 export default function Login() {
   const dispatch = useAppDispatch()
   const { loading, error } = useAppSelector((state) => state.auth)
+  const isAuthenticated = useAppSelector((state)=>state.auth.isAuthenticated)
+  const navigate = useNavigate()
 
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
@@ -125,7 +127,7 @@ export default function Login() {
                 />
               </div>
               {formErrors.email && (
-                <p className="text-destructive text-xs mt-1.5 font-medium">
+                <p className=" text-xs mt-1.5 font-medium">
                   {formErrors.email}
                 </p>
               )}

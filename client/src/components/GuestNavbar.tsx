@@ -51,73 +51,117 @@ const GuestNavbar = () => {
   ]
 
   return (
-    <nav className={`sticky top-0 z-50 w-full backdrop-blur-xl transition duration-300 ${scrolled ? 'shadow-sm' : ''}`}>
-      <div className="site-nav-inner">
-        <div className="flex items-center justify-between h-16 gap-4">
-          <Link to="/" className="nav-brand">
-            <div className="brand-badge">S</div>
+    <nav className={`sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md transition-all duration-300 ${scrolled ? 'shadow-md border-b border-border' : 'border-b border-border/50'}`}>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-2 md:gap-4">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity">
+            <div className="h-10 w-10 rounded-full  from-primary to-primary/80 flex items-center justify-center text-foreground font-bold text-lg">
+              S
+            </div>
             <div className="hidden sm:block">
-              <p className="text-sm font-semibold">SyncSpace</p>
-              <p className="text-xs text-muted">Guest hub</p>
+              <p className="text-sm font-semibold leading-none">SyncSpace</p>
+              <p className="text-xs text-muted leading-none">Guest hub</p>
             </div>
           </Link>
 
-          <div className="hidden lg:flex nav-links">
+          {/* Desktop Navigation Links */}
+          <div className="hidden lg:flex items-center gap-6 flex-1 mx-8">
             {navLinks.map((link) => (
-              <Link key={link.href} to={link.href} className="nav-link">
+              <Link
+                key={link.href}
+                to={link.href}
+                className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
+              >
                 {link.label}
               </Link>
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
-            <button onClick={toggleTheme} aria-label="Toggle theme" className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-muted">
+          {/* Right Section */}
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-background hover:bg-muted transition-colors"
+            >
               {isDarkMode ? <MdSunny size={18} /> : <MdDarkMode size={18} />}
             </button>
 
-            <div className="hidden md:flex nav-cta">
+            {/* Desktop CTA Buttons */}
+            <div className="hidden md:flex items-center gap-3">
               {isAuthenticated ? (
-                <Link to="/dashboard" className="primary-button">
+                <Link to="/dashboard" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm">
                   Dashboard
                 </Link>
               ) : (
                 <>
-                  <Link to="/login" className="nav-link">
+                  <Link to="/login" className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors">
                     Sign In
                   </Link>
-                  <Link to="/signup" className="primary-button py-2!">
+                  <Link to="/signup" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm">
                     Get Started
                   </Link>
                 </>
               )}
             </div>
 
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-muted md:hidden" aria-label="Toggle menu">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-background hover:bg-muted transition-colors md:hidden"
+              aria-label="Toggle menu"
+            >
               {isMobileMenuOpen ? <MdClose size={20} /> : <MdMenu size={20} />}
             </button>
           </div>
         </div>
 
-        <div className={`${isMobileMenuOpen ? 'mt-4 max-h-screen opacity-100' : 'max-h-0 opacity-0'} overflow-hidden transition-all duration-300 md:hidden`}>
-          <div className="rounded-3xl border border-border bg-background p-4">
-            <div className="flex flex-col gap-2">
+        {/* Mobile Menu */}
+        <div
+          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0'
+            }`}
+        >
+          <div className="pt-2 space-y-2 border-t border-border/50">
+            {/* Mobile Navigation Links */}
+            <div className="space-y-1">
               {navLinks.map((link) => (
-                <Link key={link.href} to={link.href} className="nav-link">
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className="block px-4 py-2 text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   {link.label}
                 </Link>
               ))}
             </div>
-            <div className="mt-4 flex flex-col gap-3">
+
+            {/* Mobile CTA Buttons */}
+            <div className="space-y-2 border-t border-border/50 pt-2 mt-2">
               {isAuthenticated ? (
-                <Link to="/dashboard" className="primary-button">
+                <Link
+                  to="/dashboard"
+                  className="block w-full px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-center hover:bg-primary/90 transition-colors text-sm"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   Dashboard
                 </Link>
               ) : (
                 <>
-                  <Link to="/login" className="nav-link">
+                  <Link
+                    to="/login"
+                    className="block w-full px-4 py-2 text-center text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
                     Sign In
                   </Link>
-                  <Link to="/signup" className="primary-button">
+                  <Link
+                    to="/signup"
+                    className="block w-full px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-center hover:bg-primary/90 transition-colors text-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
                     Get Started
                   </Link>
                 </>
