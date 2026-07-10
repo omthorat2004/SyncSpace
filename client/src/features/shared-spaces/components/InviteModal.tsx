@@ -1,6 +1,6 @@
 // components/InviteModal.tsx
 import Modal from '@/components/atoms/Modal';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FiEdit2, FiEye, FiUserPlus } from 'react-icons/fi';
 import { toast } from 'sonner';
 
@@ -22,12 +22,16 @@ export const InviteModal = ({
     const [email, setEmail] = useState('');
     const [permission, setPermission] = useState<'view' | 'edit'>('view');
 
-    useEffect(() => {
+    // Reset the form whenever the modal transitions to open — adjusted
+    // during render per React's guidance rather than in an effect.
+    const [wasOpen, setWasOpen] = useState(false);
+    if (isOpen !== wasOpen) {
+        setWasOpen(isOpen);
         if (isOpen) {
             setEmail('');
             setPermission('view');
         }
-    }, [isOpen]);
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

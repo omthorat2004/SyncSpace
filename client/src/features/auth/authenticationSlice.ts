@@ -6,12 +6,10 @@ import type {
   SignupFormData,
 } from '@/features/auth/auth.type'
 import { publicApi } from '@/services/api.service'
+import { extractErrorMessage } from '@/utils/errors'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { AxiosError } from 'axios'
 
 import { toast } from 'sonner';
-
-
 
 // ============================================================
 // Async Thunks
@@ -20,27 +18,6 @@ import { toast } from 'sonner';
 const normalizeAuthResponse = (data: AuthApiResponse): AuthResponse => ({
   user: data.user,
 })
-
-const extractErrorMessage = (err: unknown, fallbackMessage: string): string => {
-  if (err instanceof AxiosError) {
-    const backendMessage = (err.response?.data as { message?: string; detail?: string } | undefined)
-    if (backendMessage?.message) {
-      return backendMessage.message
-    }
-    if (backendMessage?.detail) {
-      return backendMessage.detail
-    }
-    if (err.message) {
-      return err.message
-    }
-  }
-
-  if (err instanceof Error) {
-    return err.message
-  }
-
-  return fallbackMessage
-}
 
 export const signup = createAsyncThunk<AuthResponse, SignupFormData, { rejectValue: string }>(
   'auth/signup',

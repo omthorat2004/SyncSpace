@@ -1,6 +1,7 @@
 import { updateUserProfile } from "@/features/auth/authenticationSlice";
 import { protectedApi } from "@/services/api.service";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
+import { extractErrorMessage } from "@/utils/errors";
 import { useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FiArrowLeft } from "react-icons/fi";
@@ -33,8 +34,8 @@ const Settings = () => {
             const response = await protectedApi.updateProfile({ name: name.trim(), email: email.trim() });
             dispatch(updateUserProfile(response.data.user));
             toast.success("Profile updated");
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || "Failed to update profile");
+        } catch (err) {
+            toast.error(extractErrorMessage(err, "Failed to update profile"));
         } finally {
             setSavingProfile(false);
         }
@@ -58,8 +59,8 @@ const Settings = () => {
             setOldPassword("");
             setNewPassword("");
             setConfirmPassword("");
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || "Failed to change password");
+        } catch (err) {
+            toast.error(extractErrorMessage(err, "Failed to change password"));
         } finally {
             setSavingPassword(false);
         }

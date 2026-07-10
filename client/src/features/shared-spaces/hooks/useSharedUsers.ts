@@ -1,5 +1,5 @@
 // hooks/useSharedUsers.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { protectedApi } from '@/services/api.service';
 import {type SharedUser } from '../types';
 import { toast } from 'sonner';
@@ -10,9 +10,9 @@ export const useSharedUsers = (spaceId: number) => {
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const fetchSharedUsers = async () => {
+    const fetchSharedUsers = useCallback(async () => {
         if (!spaceId) return;
-        
+
         try {
             setLoading(true);
             setError(null);
@@ -25,7 +25,7 @@ export const useSharedUsers = (spaceId: number) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [spaceId]);
 
     const updatePermission = async (userId: number, newPermission: 'view' | 'edit') => {
         try {
@@ -77,7 +77,7 @@ export const useSharedUsers = (spaceId: number) => {
         if (spaceId) {
             fetchSharedUsers();
         }
-    }, [spaceId]);
+    }, [spaceId, fetchSharedUsers]);
 
     return {
         sharedUsers,

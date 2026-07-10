@@ -1,4 +1,5 @@
 import { protectedApi } from "@/services/api.service";
+import { extractErrorMessage } from "@/utils/errors";
 import { createAsyncThunk, createSlice,type PayloadAction } from "@reduxjs/toolkit";
 import {type Content,type ContentType } from "./content.type";
 
@@ -28,10 +29,8 @@ export const fetchContents = createAsyncThunk(
         try {
             const response = await protectedApi.getContents(spaceId, type);
             return response.data.contents;
-        } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || "Failed to fetch contents"
-            );
+        } catch (error) {
+            return rejectWithValue(extractErrorMessage(error, "Failed to fetch contents"));
         }
     }
 );
@@ -45,10 +44,8 @@ export const fetchContent = createAsyncThunk(
         try {
             const response = await protectedApi.getContent(spaceId, contentId);
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || "Failed to fetch content"
-            );
+        } catch (error) {
+            return rejectWithValue(extractErrorMessage(error, "Failed to fetch content"));
         }
     }
 );
@@ -82,10 +79,8 @@ export const createContent = createAsyncThunk(
                 tags,
             });
             return response.data.content;
-        } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || "Failed to create content"
-            );
+        } catch (error) {
+            return rejectWithValue(extractErrorMessage(error, "Failed to create content"));
         }
     }
 );
@@ -118,10 +113,8 @@ export const updateContent = createAsyncThunk(
                 tags,
             });
             return response.data.content;
-        } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || "Failed to update content"
-            );
+        } catch (error) {
+            return rejectWithValue(extractErrorMessage(error, "Failed to update content"));
         }
     }
 );
@@ -135,10 +128,8 @@ export const deleteContent = createAsyncThunk(
         try {
             await protectedApi.deleteContent(spaceId, contentId);
             return contentId;
-        } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || "Failed to delete content"
-            );
+        } catch (error) {
+            return rejectWithValue(extractErrorMessage(error, "Failed to delete content"));
         }
     }
 );

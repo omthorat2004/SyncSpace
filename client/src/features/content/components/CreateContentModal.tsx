@@ -1,6 +1,6 @@
 import Modal from "@/components/atoms/Modal";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FiAlertCircle } from "react-icons/fi";
 import { type Content, type ContentType } from "../content.type";
@@ -37,23 +37,32 @@ export const CreateContentModal = ({
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-    useEffect(() => {
-        if (!isOpen) return;
-        if (editingContent) {
-            setFormData({
-                title: editingContent.title,
-                type: editingContent.type,
-                content: editingContent.content,
-                url: editingContent.url ?? "",
-            });
-            setTagsInput((editingContent.tags ?? []).join(", "));
-        } else {
-            setFormData({ title: "", type: "note", content: "", url: "" });
-            setTagsInput("");
+    // Reset the form whenever the modal transitions to open (or switches which
+    // content it's editing) — adjusted during render per React's guidance
+    // (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)
+    // rather than in an effect, so it applies before the first paint instead
+    // of causing an extra render.
+    const formKey = !isOpen ? null : editingContent ? `edit-${editingContent.id}` : "create";
+    const [loadedFormKey, setLoadedFormKey] = useState<string | null>(null);
+    if (formKey !== loadedFormKey) {
+        setLoadedFormKey(formKey);
+        if (formKey !== null) {
+            if (editingContent) {
+                setFormData({
+                    title: editingContent.title,
+                    type: editingContent.type,
+                    content: editingContent.content,
+                    url: editingContent.url ?? "",
+                });
+                setTagsInput((editingContent.tags ?? []).join(", "));
+            } else {
+                setFormData({ title: "", type: "note", content: "", url: "" });
+                setTagsInput("");
+            }
+            setFormErrors({});
+            setTouched({});
         }
-        setFormErrors({});
-        setTouched({});
-    }, [isOpen, editingContent]);
+    }
 
     const validateField = (name: string, value: string): string | undefined => {
         switch (name) {
@@ -187,7 +196,7 @@ export const CreateContentModal = ({
             setTouched({});
             onClose();
             onSuccess?.();
-        } catch (err: any) {
+        } catch (err) {
             console.error(`Failed to ${isEditMode ? "update" : "create"} content:`, err);
         }
     };

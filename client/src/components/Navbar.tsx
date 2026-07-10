@@ -55,7 +55,7 @@ const Navbar = () => {
         try {
             await dispatch(logout()).unwrap()
             navigate('/login')
-        } catch (error) {
+        } catch {
             // If logout fails, still clear local state and redirect
             dispatch(resetAuthState())
             navigate('/login')

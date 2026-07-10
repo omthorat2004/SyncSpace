@@ -12,8 +12,8 @@ export interface SharedUser {
 export interface SharedWithYouProps {
     spaceId: number;
     spaceName?: string;
-    onShareSpace?: (userEmail: string, permission: string) => Promise<any>;
-    onRefresh?: () => Promise<any>;
+    onShareSpace?: (userEmail: string, permission: string) => Promise<unknown>;
+    onRefresh?: () => Promise<unknown>;
 }
 
 export interface Stats {

@@ -5,32 +5,21 @@ import type {
     UpdateSpaceFormData,
 } from '@/features/space/space.type'
 import { protectedApi } from '@/services/api.service'
+import { extractErrorMessage } from '@/utils/errors'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { AxiosError } from 'axios'
 
 // ============================================================
 // Async Thunks
 // ============================================================
 
-const extractErrorMessage = (err: unknown, fallbackMessage: string): string => {
-  if (err instanceof AxiosError) {
-    const backendMessage = (err.response?.data as { message?: string; detail?: string } | undefined)
-    if (backendMessage?.message) {
-      return backendMessage.message
-    }
-    if (backendMessage?.detail) {
-      return backendMessage.detail
-    }
-    if (err.message) {
-      return err.message
-    }
-  }
+interface CreateSpaceApiResponse {
+  space: Space
+  message: string
+}
 
-  if (err instanceof Error) {
-    return err.message
-  }
-
-  return fallbackMessage
+interface GetSpacesApiResponse {
+  spaces: Space[]
+  count: number
 }
 
 export const createSpace = createAsyncThunk<Space, CreateSpaceFormData, { rejectValue: string }>(
@@ -38,9 +27,7 @@ export const createSpace = createAsyncThunk<Space, CreateSpaceFormData, { reject
   async (body, { rejectWithValue }) => {
     try {
       const response = await protectedApi.createSpace(body.name, body.description)
-      // Handle response - space might be directly in response.data or in response.data.space
-      const space = (response.data as any).space || response.data
-      return space
+      return (response.data as CreateSpaceApiResponse).space
     } catch (err) {
       return rejectWithValue(extractErrorMessage(err, 'Failed to create space'))
     }
@@ -52,9 +39,7 @@ export const fetchSpaces = createAsyncThunk<Space[], void, { rejectValue: string
   async (_, { rejectWithValue }) => {
     try {
       const response = await protectedApi.getSpaces()
-      // Handle response - spaces might be directly in response.data or in response.data.spaces
-      const spaces = (response.data as any).spaces || response.data
-      return Array.isArray(spaces) ? spaces : []
+      return (response.data as GetSpacesApiResponse).spaces ?? []
     } catch (err) {
       return rejectWithValue(extractErrorMessage(err, 'Failed to fetch spaces'))
     }
