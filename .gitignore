@@ -1,0 +1,47 @@
+# This root .gitignore covers the whole repo; client/ and server/ also
+# carry their own more specific .gitignore files.
+
+# Environment files (never commit real secrets — .env.example files are
+# intentionally tracked as documentation)
+.env
+.env.*
+!.env.example
+!*/.env.example
+
+# OS junk
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Editors / IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+logs/

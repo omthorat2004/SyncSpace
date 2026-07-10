@@ -29,30 +29,16 @@ const GuestFooter: React.FC = () => {
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted">Product</p>
             <ul className="mt-5 space-y-3 text-sm text-muted">
-              <li><Link to="/features" className="transition hover:text-foreground">Features</Link></li>
-              <li><Link to="/pricing" className="transition hover:text-foreground">Pricing</Link></li>
-              <li><Link to="/demo" className="transition hover:text-foreground">Live Demo</Link></li>
-              <li><Link to="/roadmap" className="transition hover:text-foreground">Roadmap</Link></li>
+              <li><Link to="/login" className="transition hover:text-foreground">Log in</Link></li>
+              <li><Link to="/signup" className="transition hover:text-foreground">Sign up</Link></li>
             </ul>
           </div>
 
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted">Company</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted">Legal</p>
             <ul className="mt-5 space-y-3 text-sm text-muted">
-              <li><Link to="/about" className="transition hover:text-foreground">About</Link></li>
-              <li><Link to="/blog" className="transition hover:text-foreground">Blog</Link></li>
-              <li><Link to="/careers" className="transition hover:text-foreground">Careers</Link></li>
-              <li><Link to="/contact" className="transition hover:text-foreground">Contact</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted">Support</p>
-            <ul className="mt-5 space-y-3 text-sm text-muted">
-              <li><Link to="/help" className="transition hover:text-foreground">Help Center</Link></li>
               <li><Link to="/privacy" className="transition hover:text-foreground">Privacy</Link></li>
               <li><Link to="/terms" className="transition hover:text-foreground">Terms</Link></li>
-              <li><Link to="/security" className="transition hover:text-foreground">Security</Link></li>
             </ul>
           </div>
         </div>
@@ -67,7 +53,6 @@ const GuestFooter: React.FC = () => {
               <div className="flex flex-wrap items-center gap-4">
                 <Link to="/privacy" className="transition hover:text-foreground">Privacy</Link>
                 <Link to="/terms" className="transition hover:text-foreground">Terms</Link>
-                <Link to="/cookies" className="transition hover:text-foreground">Cookies</Link>
               </div>
             </div>
           </div>

@@ -9,13 +9,18 @@ interface AuthRedirectProps {
 /**
  * AuthRedirect Component
  * Redirects authenticated users away from auth pages
+ * - While the initial session check is in flight: render nothing (avoids
+ *   deciding on a stale/default auth state)
  * - If authenticated: redirects to dashboard
  * - If not authenticated: shows the auth page
  */
 export default function AuthRedirect({ children }: AuthRedirectProps) {
-  const { isAuthenticated } = useAppSelector((state) => state.auth)
+  const { isAuthenticated, authChecked } = useAppSelector((state) => state.auth)
 
-  // Since isAuthenticated defaults to true, we only redirect if true
+  if (!authChecked) {
+    return null
+  }
+
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />
   }

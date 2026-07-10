@@ -131,6 +131,10 @@ class SpaceService:
         """
         Retrieve a space by ID with optional authorization check.
 
+        Access is granted to the owner or to any user the space has been
+        shared with (any permission level), since shared collaborators need
+        to be able to open the space to see its contents.
+
         Args:
             space_id: ID of the space to retrieve
             user_id: Optional user ID for authorization check
@@ -140,30 +144,53 @@ class SpaceService:
 
         Raises:
             SpaceNotFound: If space doesn't exist
-            UnauthorizedSpaceAccess: If user_id provided and user is not owner
+            UnauthorizedSpaceAccess: If user_id provided and user has no access
         """
         space = await self.dao.get_space_by_id(space_id)
 
         if not space:
             raise SpaceNotFound(space_id)
 
-        # Check authorization if user_id provided
         if user_id is not None and space.owner_id != user_id:
+            permission = await self.dao.get_member_permission(space_id, user_id)
+            if permission is None:
+                raise UnauthorizedSpaceAccess(space_id)
+
+        return space
+
+    async def get_user_permission(self, space: Space, user_id: int) -> str:
+        """
+        Return the requesting user's access level on a space: 'owner' if they
+        own it, otherwise their sharing permission ('view'/'edit'). Callers
+        should only pass a space the user is already known to have access to
+        (e.g. via get_space) — this does not itself enforce authorization.
+        """
+        if space.owner_id == user_id:
+            return "owner"
+
+        permission = await self.dao.get_member_permission(space.id, user_id)
+        return permission or "view"
+
+    async def _get_owned_space(self, space_id: int, user_id: int) -> Space:
+        """Retrieve a space, raising unless the user is its owner (for rename/delete)."""
+        space = await self.dao.get_space_by_id(space_id)
+
+        if not space:
+            raise SpaceNotFound(space_id)
+
+        if space.owner_id != user_id:
             raise UnauthorizedSpaceAccess(space_id)
 
         return space
 
-    async def get_user_spaces(self, owner_id: int) -> list[Space]:
+    async def get_user_spaces_with_counts(self, owner_id: int) -> list[tuple[Space, int, int]]:
         """
-        Retrieve all spaces owned by a user.
-
-        Args:
-            owner_id: ID of the space owner
+        Retrieve all spaces owned by a user along with content/member counts.
 
         Returns:
-            list[Space]: List of spaces owned by the user
+            list[tuple[Space, int, int]]: (space, content_count, member_count) tuples
         """
-        return await self.dao.get_spaces_by_owner(owner_id)
+        return await self.dao.get_spaces_by_owner_with_counts(owner_id)
 
     async def update_space(
         self,
@@ -191,8 +218,8 @@ class SpaceService:
             SpaceNameTooLong: If new name is too long
             DescriptionTooLong: If new description is too long
         """
-        # Check authorization
-        space = await self.get_space(space_id, user_id)
+        # Check authorization (owner only)
+        space = await self._get_owned_space(space_id, user_id)
 
         # Validate new values if provided
         if name is not None:
@@ -227,8 +254,8 @@ class SpaceService:
             SpaceNotFound: If space doesn't exist
             UnauthorizedSpaceAccess: If user is not the owner
         """
-        # Check authorization
-        await self.get_space(space_id, user_id)
+        # Check authorization (owner only)
+        await self._get_owned_space(space_id, user_id)
 
         # Delete space
         deleted = await self.dao.delete_space(space_id)

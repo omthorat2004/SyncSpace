@@ -9,7 +9,7 @@ import { publicApi } from '@/services/api.service'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { AxiosError } from 'axios'
 
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 
 
 
@@ -61,7 +61,6 @@ export const login = createAsyncThunk<AuthResponse, LoginFormData, { rejectValue
       const response = await publicApi.login(body.email, body.password)
       return normalizeAuthResponse(response.data)
     } catch (err) {
-      console.log(err)
       return rejectWithValue(extractErrorMessage(err, 'An error occurred during login'))
     }
   }
@@ -116,7 +115,8 @@ export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
 // ============================================================
 
 const initialState: AuthState = {
-  isAuthenticated: true,
+  isAuthenticated: false,
+  authChecked: false,
   user: null,
   loading: false,
   error: null,
@@ -136,6 +136,7 @@ const authSlice = createSlice({
     },
     resetAuthState: (state) => {
       state.isAuthenticated = false
+      state.authChecked = true
       state.user = null
       state.loading = false
       state.error = null
@@ -158,12 +159,14 @@ const authSlice = createSlice({
       .addCase(signup.fulfilled, (state, action) => {
         state.loading = false
         state.isAuthenticated = true
+        state.authChecked = true
         state.user = action.payload.user
         state.error = null
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false
         state.isAuthenticated = false
+        state.authChecked = true
         state.user = null
         state.error = action.payload as string
       })
@@ -175,12 +178,14 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false
         state.isAuthenticated = true
+        state.authChecked = true
         state.user = action.payload.user
         state.error = null
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
         state.isAuthenticated = false
+        state.authChecked = true
         state.user = null
         state.error = action.payload as string
         toast.error(state.error)
@@ -193,12 +198,14 @@ const authSlice = createSlice({
       .addCase(refreshSession.fulfilled, (state, action) => {
         state.loading = false
         state.isAuthenticated = true
+        state.authChecked = true
         state.user = action.payload.user
         state.error = null
       })
       .addCase(refreshSession.rejected, (state) => {
         state.loading = false
         state.isAuthenticated = false
+        state.authChecked = true
         state.user = null
         state.error = null
       })
@@ -210,12 +217,14 @@ const authSlice = createSlice({
       .addCase(getCurrentUser.fulfilled, (state, action) => {
         state.loading = false
         state.isAuthenticated = true
+        state.authChecked = true
         state.user = action.payload.user
         state.error = null
       })
       .addCase(getCurrentUser.rejected, (state) => {
         state.loading = false
         state.isAuthenticated = false
+        state.authChecked = true
         state.user = null
         state.error = null
       })
@@ -227,6 +236,7 @@ const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.loading = false
         state.isAuthenticated = false
+        state.authChecked = true
         state.user = null
         state.error = null
       })

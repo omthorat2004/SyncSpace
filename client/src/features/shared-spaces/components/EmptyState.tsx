@@ -23,7 +23,7 @@ export const EmptyState = ({ onInviteClick }: EmptyStateProps) => {
                 </div>
                 <button
                     onClick={onInviteClick}
-                    className="mt-2 inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-foreground text-background hover:bg-secondary transition-colors font-medium text-sm sm:text-base"
+                    className="mt-2 inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-accent text-accent-text hover:bg-accent-hover transition-colors font-medium text-sm sm:text-base"
                 >
                     <FiUserPlus size={16} />
                     Invite People

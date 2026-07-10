@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom'
 
 interface LogoProps {
+    to?: string
     showText?: boolean
     showSubtext?: boolean
 }
 
-const Logo = ({ showText = true, showSubtext = true }: LogoProps) => {
+const Logo = ({ to = '/', showText = true, showSubtext = true }: LogoProps) => {
     return (
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0">
+        <Link to={to} className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0">
             <div className="brand-badge">S</div>
             {showText && (
                 <div className="hidden sm:block">

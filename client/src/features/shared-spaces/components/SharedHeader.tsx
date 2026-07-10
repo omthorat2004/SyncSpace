@@ -21,7 +21,7 @@ export const SharedHeader = ({ spaceName, onInviteClick }: SharedHeaderProps) =>
 
             <button
                 onClick={onInviteClick}
-                className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-foreground text-background hover:bg-secondary transition-colors font-medium text-sm sm:text-base"
+                className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-accent text-accent-text hover:bg-accent-hover transition-colors font-medium text-sm sm:text-base"
             >
                 <FiUserPlus size={16} />
                 <span className="hidden xs:inline">Invite People</span>

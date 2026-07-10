@@ -10,7 +10,9 @@ Handles all database operations related to content including:
 
 from sqlalchemy import select, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from src.server.models.space_models import Content, ContentType
+from src.server.models.tag_models import Tag
 
 
 class ContentDAO:
@@ -25,6 +27,29 @@ class ContentDAO:
         """
         self.db = db
 
+    async def _resolve_tags(self, tag_names: list[str]) -> list[Tag]:
+        """
+        Fetch existing tags matching the given names (case-insensitive) and
+        create any that don't exist yet.
+        """
+        normalized = sorted({name.strip().lower() for name in tag_names if name and name.strip()})
+        if not normalized:
+            return []
+
+        result = await self.db.execute(select(Tag).where(Tag.name.in_(normalized)))
+        existing = {tag.name: tag for tag in result.scalars().all()}
+
+        tags = []
+        for name in normalized:
+            tag = existing.get(name)
+            if tag is None:
+                tag = Tag(name=name)
+                self.db.add(tag)
+                existing[name] = tag
+            tags.append(tag)
+
+        return tags
+
     async def create_content(
         self,
         space_id: int,
@@ -32,6 +57,7 @@ class ContentDAO:
         content_type: ContentType,
         content: str,
         url: str | None = None,
+        tag_names: list[str] | None = None,
     ) -> Content:
         """
         Create new content in a space.
@@ -42,6 +68,7 @@ class ContentDAO:
             content_type: Type of content (note, link, code)
             content: Content body/text
             url: Optional URL for link type content
+            tag_names: Optional list of tag names to attach
 
         Returns:
             Content: The created content object
@@ -56,10 +83,12 @@ class ContentDAO:
             content=content,
             url=url,
         )
+        if tag_names:
+            new_content.tags = await self._resolve_tags(tag_names)
+
         self.db.add(new_content)
         await self.db.commit()
-        await self.db.refresh(new_content)
-        return new_content
+        return await self.get_content_by_id(new_content.id)
 
     async def get_content_by_id(self, content_id: int) -> Content | None:
         """
@@ -72,7 +101,7 @@ class ContentDAO:
             Content | None: The content object if found, None otherwise
         """
         result = await self.db.execute(
-            select(Content).where(Content.id == content_id)
+            select(Content).options(selectinload(Content.tags)).where(Content.id == content_id)
         )
         return result.scalar_one_or_none()
 
@@ -88,6 +117,7 @@ class ContentDAO:
         """
         result = await self.db.execute(
             select(Content)
+            .options(selectinload(Content.tags))
             .where(Content.space_id == space_id)
             .order_by(Content.created_at.desc())
         )
@@ -110,6 +140,7 @@ class ContentDAO:
         """
         result = await self.db.execute(
             select(Content)
+            .options(selectinload(Content.tags))
             .where(
                 and_(
                     Content.space_id == space_id,
@@ -126,6 +157,7 @@ class ContentDAO:
         title: str | None = None,
         content: str | None = None,
         url: str | None = None,
+        tag_names: list[str] | None = None,
     ) -> Content | None:
         """
         Update content information.
@@ -135,6 +167,7 @@ class ContentDAO:
             title: New title (optional)
             content: New content body (optional)
             url: New URL (optional)
+            tag_names: If provided, replaces the content's tags entirely
 
         Returns:
             Content | None: The updated content object if found, None otherwise
@@ -149,10 +182,11 @@ class ContentDAO:
             content_obj.content = content
         if url is not None:
             content_obj.url = url
+        if tag_names is not None:
+            content_obj.tags = await self._resolve_tags(tag_names)
 
         await self.db.commit()
-        await self.db.refresh(content_obj)
-        return content_obj
+        return await self.get_content_by_id(content_id)
 
     async def delete_content(self, content_id: int) -> bool:
         """
@@ -170,53 +204,3 @@ class ContentDAO:
         await self.db.commit()
         return result.rowcount > 0
 
-    async def content_exists(self, content_id: int) -> bool:
-        """
-        Check if content exists.
-
-        Args:
-            content_id: ID of the content to check
-
-        Returns:
-            bool: True if content exists, False otherwise
-        """
-        result = await self.db.execute(
-            select(Content).where(Content.id == content_id)
-        )
-        return result.scalar_one_or_none() is not None
-
-    async def is_content_in_space(self, content_id: int, space_id: int) -> bool:
-        """
-        Check if content belongs to a specific space.
-
-        Args:
-            content_id: ID of the content
-            space_id: ID of the space
-
-        Returns:
-            bool: True if content is in the space, False otherwise
-        """
-        result = await self.db.execute(
-            select(Content).where(
-                and_(
-                    Content.id == content_id,
-                    Content.space_id == space_id,
-                )
-            )
-        )
-        return result.scalar_one_or_none() is not None
-
-    async def count_contents_in_space(self, space_id: int) -> int:
-        """
-        Count total content items in a space.
-
-        Args:
-            space_id: ID of the space
-
-        Returns:
-            int: Total count of content items
-        """
-        result = await self.db.execute(
-            select(Content).where(Content.space_id == space_id)
-        )
-        return len(result.scalars().all())

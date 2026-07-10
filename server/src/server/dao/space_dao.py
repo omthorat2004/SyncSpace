@@ -8,9 +8,10 @@ Handles all database operations related to spaces including:
 - Deleting spaces
 """
 
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.server.models.space_models import Space
+from src.server.models.space_models import Space, Content
+from src.server.models.space_member_model import SpaceMember
 from datetime import datetime
 
 
@@ -66,21 +67,6 @@ class SpaceDAO:
         )
         return result.scalar_one_or_none()
 
-    async def get_spaces_by_owner(self, owner_id: int) -> list[Space]:
-        """
-        Retrieve all spaces owned by a specific user.
-
-        Args:
-            owner_id: ID of the space owner
-
-        Returns:
-            list[Space]: List of spaces owned by the user
-        """
-        result = await self.db.execute(
-            select(Space).where(Space.owner_id == owner_id).order_by(Space.created_at.desc())
-        )
-        return result.scalars().all()
-
     async def update_space(
         self,
         space_id: int,
@@ -127,40 +113,6 @@ class SpaceDAO:
         await self.db.commit()
         return result.rowcount > 0
 
-    async def space_exists(self, space_id: int) -> bool:
-        """
-        Check if a space exists.
-
-        Args:
-            space_id: ID of the space to check
-
-        Returns:
-            bool: True if space exists, False otherwise
-        """
-        result = await self.db.execute(
-            select(Space).where(Space.id == space_id)
-        )
-        return result.scalar_one_or_none() is not None
-
-    async def is_space_owner(self, space_id: int, user_id: int) -> bool:
-        """
-        Check if a user is the owner of a space.
-
-        Args:
-            space_id: ID of the space
-            user_id: ID of the user
-
-        Returns:
-            bool: True if user is the owner, False otherwise
-        """
-        result = await self.db.execute(
-            select(Space).where(
-                Space.id == space_id,
-                Space.owner_id == user_id,
-            )
-        )
-        return result.scalar_one_or_none() is not None
-    
     async def touch_space(self, space_id: int) -> None:
         await self.db.execute(
             update(Space)
@@ -169,4 +121,50 @@ class SpaceDAO:
         )
 
         await self.db.commit()
+
+    async def get_member_permission(self, space_id: int, user_id: int) -> str | None:
+        """
+        Return the sharing permission a user has on a space they don't own,
+        or None if the space isn't shared with them.
+        """
+        result = await self.db.execute(
+            select(SpaceMember.permission).where(
+                SpaceMember.space_id == space_id,
+                SpaceMember.user_id == user_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def get_spaces_by_owner_with_counts(
+        self, owner_id: int
+    ) -> list[tuple[Space, int, int]]:
+        """
+        Retrieve all spaces owned by a user along with their content and member counts.
+
+        Returns:
+            list[tuple[Space, int, int]]: (space, content_count, member_count) tuples
+        """
+        content_counts = (
+            select(Content.space_id, func.count(Content.id).label("content_count"))
+            .group_by(Content.space_id)
+            .subquery()
+        )
+        member_counts = (
+            select(SpaceMember.space_id, func.count(SpaceMember.id).label("member_count"))
+            .group_by(SpaceMember.space_id)
+            .subquery()
+        )
+
+        result = await self.db.execute(
+            select(
+                Space,
+                func.coalesce(content_counts.c.content_count, 0),
+                func.coalesce(member_counts.c.member_count, 0),
+            )
+            .outerjoin(content_counts, content_counts.c.space_id == Space.id)
+            .outerjoin(member_counts, member_counts.c.space_id == Space.id)
+            .where(Space.owner_id == owner_id)
+            .order_by(Space.created_at.desc())
+        )
+        return [(space, content_count, member_count) for space, content_count, member_count in result.all()]
 

@@ -1,9 +1,12 @@
+import Logo from '@/components/molecules/Logo'
+import SearchBox from '@/components/molecules/SearchBox'
+import ThemeToggle from '@/components/molecules/ThemeToggle'
 import { logout, resetAuthState } from '@/features/auth/authenticationSlice'
 import { openCreateModal } from '@/features/space/spaceSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hook'
 import { useEffect, useState } from 'react'
-import { FiGrid, FiLogOut, FiPlus, FiSearch } from 'react-icons/fi'
-import { MdClose, MdDarkMode, MdMenu, MdSunny } from 'react-icons/md'
+import { FiGrid, FiLogOut, FiPlus } from 'react-icons/fi'
+import { MdClose, MdMenu } from 'react-icons/md'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 const Navbar = () => {
@@ -68,12 +71,7 @@ const Navbar = () => {
             <div className="site-nav-inner">
                 <div className="flex items-center justify-between h-16 gap-4">
                     <div className="flex items-center gap-8 min-w-0">
-                        <Link to="/dashboard" className="nav-brand">
-                            <div className="brand-badge">S</div>
-                            <span className="hidden sm:block">
-                                <p className="text-sm font-semibold">SyncSpace</p>
-                            </span>
-                        </Link>
+                        <Logo to="/dashboard" showSubtext={false} />
 
                         <nav className="hidden md:flex nav-links">
                             <Link
@@ -93,25 +91,19 @@ const Navbar = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="hidden lg:flex items-center gap-2 rounded-full px-3 py-2  border border-border">
-                            <FiSearch size={16} className="text-muted" />
-                            <span className="text-sm text-muted">Search spaces...</span>
-                        </div>
+                        <SearchBox className="hidden lg:block w-64" />
 
-                        <button
-                            onClick={toggleTheme}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border  text-muted"
-                            aria-label="Toggle theme"
+                        <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleTheme} />
+
+                        <Link
+                            to="/dashboard/settings"
+                            className="hidden sm:flex items-center gap-2 rounded-full px-3 py-2 border border-border hover:bg-surface-container transition-colors"
                         >
-                            {isDarkMode ? <MdSunny size={18} /> : <MdDarkMode size={18} />}
-                        </button>
-
-                        <div className="hidden sm:flex items-center gap-2 rounded-full px-3 py-2  border border-border">
                             <FiGrid size={14} className="text-muted" />
                             <span className="text-sm font-medium text-foreground">
                                 {user?.name ?? 'Workspace'}
                             </span>
-                        </div>
+                        </Link>
 
                         <button
                             onClick={handleLogout}
@@ -134,6 +126,7 @@ const Navbar = () => {
                 {/* Mobile Menu */}
                 <div className={`${isMobileMenuOpen ? 'mt-4 max-h-screen opacity-100' : 'max-h-0 opacity-0'} overflow-hidden transition-all duration-300 md:hidden`}>
                     <div className="rounded-3xl border border-border bg-background p-4">
+                        <SearchBox className="mb-3" onNavigate={() => setIsMobileMenuOpen(false)} />
                         <div className="flex flex-col gap-2">
                             <Link
                                 to="/dashboard"
@@ -152,6 +145,14 @@ const Navbar = () => {
                                 <FiPlus size={14} />
                                 New Space
                             </button>
+                            <Link
+                                to="/dashboard/settings"
+                                className="nav-link flex items-center gap-2"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                <FiGrid size={14} />
+                                Settings
+                            </Link>
                         </div>
                         <div className="mt-4 flex flex-col gap-3">
                             <button
@@ -159,9 +160,9 @@ const Navbar = () => {
                                     handleLogout()
                                     setIsMobileMenuOpen(false)
                                 }}
-                                className="nav-link flex items-center gap-2 bg-tra border border-destructive text-destructive hover:bg-destructive/10 transition-colors"
+                                className="nav-link flex items-center gap-2 border border-destructive text-destructive hover:bg-destructive/10 transition-colors"
                             >
-                                <FiLogOut className='' size={14} />
+                                <FiLogOut size={14} />
                                 Logout
                             </button>
                         </div>

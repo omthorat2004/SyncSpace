@@ -1,4 +1,5 @@
-import { LinkProps, Link as RouterLink } from 'react-router-dom'
+import type { LinkProps } from 'react-router-dom'
+import { Link as RouterLink } from 'react-router-dom'
 
 interface NavLinkProps extends Omit<LinkProps, 'to'> {
     to: string

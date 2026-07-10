@@ -24,6 +24,7 @@ export interface Content {
     content: string
     url: string | null
     created_at: string
+    tags: string[]
 }
 
 /**

@@ -59,10 +59,6 @@ const SharedWithYou = ({ spaceId, spaceName, onShareSpace, onRefresh }: SharedWi
         }
     };
 
-    const handleRefresh = () => {
-        fetchSharedUsers();
-    };
-
     return (
         <div className="mt-8 sm:mt-12">
             <ErrorAlert error={error} onDismiss={() => setError(null)} />

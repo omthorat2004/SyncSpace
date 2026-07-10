@@ -90,7 +90,13 @@ axiosInstance.interceptors.response.use(
 
         return axiosInstance(originalRequest)
       } catch (refreshError) {
-        if (typeof window !== "undefined") {
+        // Only force-navigate to /login when the caller wants that (the
+        // default for protected calls). Background checks like the
+        // app-boot getCurrentUser() pass redirectOnAuthFailure: false so
+        // a logged-out visitor browsing the public guest pages doesn't
+        // get yanked to /login just because there's no session to refresh.
+        const shouldRedirect = originalRequest.redirectOnAuthFailure !== false
+        if (shouldRedirect && typeof window !== "undefined") {
           window.history.replaceState({}, "", "/login")
           window.dispatchEvent(new PopStateEvent("popstate"))
         }

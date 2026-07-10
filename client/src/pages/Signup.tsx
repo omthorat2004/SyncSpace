@@ -1,8 +1,8 @@
+import Button from '@/components/atoms/Button'
 import type { SignupFormData } from '@/features/auth/auth.type'
 import { signup } from '@/features/auth/authenticationSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hook'
 import { useState } from 'react'
-import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { MdEmail, MdPerson, MdVisibility, MdVisibilityOff } from 'react-icons/md'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -19,7 +19,6 @@ export default function Signup() {
 
   const [showPassword, setShowPassword] = useState(false)
   const [formErrors, setFormErrors] = useState<Partial<SignupFormData>>({})
-
 
   const validateForm = (): boolean => {
     const errors: Partial<SignupFormData> = {}
@@ -46,14 +45,12 @@ export default function Signup() {
     return Object.keys(errors).length === 0
   }
 
-  // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
     }))
-    // Clear error for this field when user starts typing
     if (formErrors[name as keyof SignupFormData]) {
       setFormErrors(prev => ({
         ...prev,
@@ -61,7 +58,6 @@ export default function Signup() {
       }))
     }
   }
-
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -71,11 +67,8 @@ export default function Signup() {
     }
 
     try {
-      const result = await dispatch(signup(formData)).unwrap()
-      // Navigate to dashboard or home after successful signup
-      navigate('/dashboard', {
-        replace: true
-      })
+      await dispatch(signup(formData)).unwrap()
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       // Error is already handled in Redux state
       console.error('Signup failed:', err)
@@ -83,19 +76,17 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
-      {/* Background neutral lighting */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-slate-200 rounded-full filter blur-3xl opacity-70"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-slate-100 rounded-full filter blur-3xl opacity-70"></div>
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10 sm:py-14 relative overflow-hidden">
+      {/* Background lighting — theme-aware accent tint, not a flat gray */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-0 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-accent-soft rounded-full filter blur-3xl opacity-70"></div>
+        <div className="absolute bottom-0 left-0 w-72 h-72 sm:w-96 sm:h-96 bg-success/10 rounded-full filter blur-3xl opacity-70"></div>
       </div>
 
       <div className="w-full max-w-md">
-        {/* Card container */}
-        <div className="card shadow-lg hover-lift">
-          {/* Header */}
+        <div className="card rounded-2xl p-6 sm:p-8">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               Join SyncSpace
             </h1>
             <p className="text-muted text-sm">
@@ -103,16 +94,13 @@ export default function Signup() {
             </p>
           </div>
 
-          {/* Error message */}
           {error && (
-            <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg">
+            <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
               <p className="text-destructive text-sm font-medium">{error}</p>
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            {/* Name field */}
             <div className="form-group">
               <label htmlFor="name" className="form-label">
                 Full Name
@@ -126,8 +114,7 @@ export default function Signup() {
                   placeholder="John Doe"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={`form-field pl-3 pr-10 ${formErrors.name ? 'border-destructive' : ''
-                    }`}
+                  className={`form-field pl-3 pr-10 ${formErrors.name ? 'border-destructive' : ''}`}
                   disabled={loading}
                   autoComplete="name"
                 />
@@ -139,7 +126,6 @@ export default function Signup() {
               )}
             </div>
 
-            {/* Email field */}
             <div className="form-group">
               <label htmlFor="email" className="form-label">
                 Email Address
@@ -153,8 +139,7 @@ export default function Signup() {
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`form-field pl-3 pr-10 ${formErrors.email ? 'border-destructive' : ''
-                    }`}
+                  className={`form-field pl-3 pr-10 ${formErrors.email ? 'border-destructive' : ''}`}
                   disabled={loading}
                   autoComplete="email"
                 />
@@ -166,13 +151,11 @@ export default function Signup() {
               )}
             </div>
 
-            {/* Password field */}
             <div className="form-group">
               <label htmlFor="password" className="form-label">
                 Password
               </label>
               <div className="relative">
-
                 <input
                   id="password"
                   name="password"
@@ -180,8 +163,7 @@ export default function Signup() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`form-field pl-3 pr-10 ${formErrors.password ? 'border-destructive' : ''
-                    }`}
+                  className={`form-field pl-3 pr-10 ${formErrors.password ? 'border-destructive' : ''}`}
                   disabled={loading}
                   autoComplete="new-password"
                 />
@@ -206,45 +188,27 @@ export default function Signup() {
               )}
             </div>
 
-            {/* Submit button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="button w-full py-3 font-semibold mt-8 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              {loading ? (
-                <>
-                  <AiOutlineLoading3Quarters className="w-4 h-4 animate-spin" />
-                  <span>Creating Account...</span>
-                </>
-              ) : (
-                <span>Create Account</span>
-              )}
-            </button>
+            <Button type="submit" variant="primary" size="lg" fullWidth isLoading={loading} className="mt-2">
+              Create account
+            </Button>
           </form>
 
-          {/* Divider */}
           <div className="my-6 flex items-center gap-3">
             <div className="flex-1 h-px bg-border"></div>
             <span className="text-xs text-muted">Already have an account?</span>
             <div className="flex-1 h-px bg-border"></div>
           </div>
 
-          {/* Login link */}
           <div className="text-center">
             <p className="text-sm text-muted">
               Sign in to your account{' '}
-              <Link
-                to="/login"
-                className="text-link hover:text-link-hover font-semibold transition-colors"
-              >
+              <Link to="/login" className="text-link hover:text-link-hover font-semibold transition-colors">
                 here
               </Link>
             </p>
           </div>
         </div>
 
-        {/* Footer text */}
         <div className="mt-6 text-center text-xs text-muted">
           <p>
             By signing up, you agree to our{' '}

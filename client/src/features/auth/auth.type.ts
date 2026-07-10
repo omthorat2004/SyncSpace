@@ -55,6 +55,12 @@ export interface AuthState {
   // Authentication status
   isAuthenticated: boolean
 
+  // Whether the initial session check (getCurrentUser on app boot) has
+  // settled yet. Route guards must wait for this before redirecting —
+  // otherwise they act on the default isAuthenticated value instead of
+  // the real session state.
+  authChecked: boolean
+
   // User data
   user: AuthUser | null
 

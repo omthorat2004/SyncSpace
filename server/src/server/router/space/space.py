@@ -118,13 +118,25 @@ async def get_spaces(
     """
     logger.info(f"Fetching spaces for user {current_user.id}")
 
-    spaces = await space_service.get_user_spaces(current_user.id)
+    spaces_with_counts = await space_service.get_user_spaces_with_counts(current_user.id)
 
-    logger.info(f"Retrieved {len(spaces)} spaces for user {current_user.id}")
+    logger.info(f"Retrieved {len(spaces_with_counts)} spaces for user {current_user.id}")
 
     return GetSpacesResponse(
-        spaces=[SpaceResponse.model_validate(space) for space in spaces],
-        count=len(spaces),
+        spaces=[
+            SpaceResponse(
+                id=space.id,
+                name=space.name,
+                description=space.description,
+                owner_id=space.owner_id,
+                created_at=space.created_at,
+                updated_at=space.updated_at,
+                content_count=content_count,
+                member_count=member_count,
+            )
+            for space, content_count, member_count in spaces_with_counts
+        ],
+        count=len(spaces_with_counts),
     )
 
 
@@ -168,8 +180,17 @@ async def get_space(
     logger.info(f"Fetching space {space_id} for user {current_user.id}")
 
     space = await space_service.get_space(space_id, current_user.id)
+    permission = await space_service.get_user_permission(space, current_user.id)
 
-    return SpaceResponse.model_validate(space)
+    return SpaceResponse(
+        id=space.id,
+        name=space.name,
+        description=space.description,
+        owner_id=space.owner_id,
+        created_at=space.created_at,
+        updated_at=space.updated_at,
+        my_permission=permission,
+    )
 
 
 @router.put(

@@ -10,6 +10,8 @@ from src.server.router.auth import router as auth_router
 from src.server.router.space import router as space_router
 from src.server.router.content import router as content_router
 from src.server.router.share_space import router as share_space_router
+from src.server.router.user import router as user_router
+from src.server.router.search import router as search_router
 
 # Fetch the uvicorn error logger to use its handlers and formatters
 logger = logging.getLogger("uvicorn.error")
@@ -68,6 +70,8 @@ app.include_router(auth_router, prefix=API_PREFIX)
 app.include_router(space_router, prefix=API_PREFIX)
 app.include_router(content_router, prefix=API_PREFIX)
 app.include_router(share_space_router,prefix=API_PREFIX)
+app.include_router(user_router,prefix=API_PREFIX)
+app.include_router(search_router,prefix=API_PREFIX)
 
 # Health check endpoint
 @app.get("/health", tags=["health"])

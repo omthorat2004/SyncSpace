@@ -60,12 +60,64 @@ class ContentService:
         self.space_dao = space_dao
         self.cache = CacheManager(ttl=3600)  # 1 hour cache
 
+    async def _check_access(self, space, user_id: int | None, require_edit: bool = False) -> None:
+        """
+        Authorize a user against a space: the owner always has full access;
+        shared members need at least a 'view' permission to read and an
+        'edit' permission to create/update/delete content.
+        """
+        if user_id is None or space.owner_id == user_id:
+            return
+
+        permission = await self.space_dao.get_member_permission(space.id, user_id)
+        if permission is None:
+            raise UnauthorizedContentAccess()
+        if require_edit and permission != "edit":
+            raise UnauthorizedContentAccess()
+
+    @staticmethod
+    def _with_tag_names(content: Content) -> Content:
+        """
+        Stamp a plain `tag_names: list[str]` attribute onto a Content instance,
+        computed from the real `tags` relationship. Response building always
+        reads `tag_names` (never the relationship directly) so it works
+        identically for objects freshly loaded from the DB and for objects
+        reconstructed from a Redis cache hit (see _content_from_cache_item).
+        """
+        content.tag_names = [tag.name for tag in content.tags]
+        return content
+
+    @staticmethod
+    def _content_to_cache_item(content: Content) -> dict:
+        return {
+            "id": content.id,
+            "space_id": content.space_id,
+            "title": content.title,
+            "type": content.type.value,
+            "content": content.content,
+            "url": content.url,
+            "created_at": content.created_at.isoformat(),
+            "tags": getattr(content, "tag_names", []),
+        }
+
+    @staticmethod
+    def _content_from_cache_item(item: dict) -> Content:
+        tag_names = item.get("tags", []) or []
+        content = Content(
+            id=item["id"],
+            space_id=item["space_id"],
+            title=item["title"],
+            type=ContentType(item["type"]),
+            content=item["content"],
+            url=item["url"],
+            created_at=datetime.fromisoformat(item["created_at"]) if isinstance(item.get("created_at"), str) else item["created_at"],
+        )
+        content.tag_names = tag_names
+        return content
+
     def _validate_content_title(self, title: str) -> None:
         """
         Validate content title according to business rules.
-
-        Args:
-            title: Content title to validate
 
         Raises:
             ContentTitleRequired: If title is empty
@@ -83,9 +135,6 @@ class ContentService:
         """
         Validate content body according to business rules.
 
-        Args:
-            content: Content body to validate
-
         Raises:
             ContentBodyTooLong: If content exceeds maximum length
         """
@@ -96,17 +145,10 @@ class ContentService:
         """
         Validate and convert content type.
 
-        Args:
-            content_type: Content type string
-
-        Returns:
-            ContentType: Validated content type enum
-
         Raises:
             InvalidContentType: If content type is invalid
         """
         try:
-            # Convert to lowercase to handle case-insensitive input
             return ContentType(content_type.lower())
         except ValueError:
             valid_types = [ct.value for ct in ContentType]
@@ -116,19 +158,12 @@ class ContentService:
         """
         Validate URL format if provided.
 
-        Args:
-            url: URL to validate
-
-        Returns:
-            str | None: Validated URL or None
-
         Raises:
             InvalidUrlFormat: If URL format is invalid
         """
         if not url:
             return None
 
-        # Basic URL validation
         if not url.startswith(("http://", "https://")):
             raise InvalidUrlFormat()
 
@@ -141,25 +176,15 @@ class ContentService:
         content_type: str,
         content: str,
         url: str | None = None,
+        tags: list[str] | None = None,
         user_id: int | None = None,
     ) -> Content:
         """
         Create new content in a space.
 
-        Args:
-            space_id: ID of the space
-            title: Title of the content
-            content_type: Type of content (note, link, code)
-            content: Content body/text
-            url: Optional URL for link type content
-            user_id: Optional user ID for authorization check
-
-        Returns:
-            Content: The created content object
-
         Raises:
             SpaceNotFound: If space doesn't exist
-            UnauthorizedContentAccess: If user doesn't own the space
+            UnauthorizedContentAccess: If user doesn't have edit access
             ContentTitleRequired: If title is empty
             ContentTitleTooLong: If title is too long
             ContentBodyTooLong: If content is too long
@@ -167,37 +192,33 @@ class ContentService:
             InvalidUrlFormat: If URL format is invalid
             ContentCreationFailed: If database operation fails
         """
-        # Verify space exists and user owns it
         space = await self.space_dao.get_space_by_id(space_id)
         if not space:
             raise SpaceNotFound(space_id)
 
-        if user_id is not None and space.owner_id != user_id:
-            raise UnauthorizedContentAccess()
+        await self._check_access(space, user_id, require_edit=True)
 
-        # Validate inputs
         self._validate_content_title(title)
         self._validate_content_body(content)
         validated_type = self._validate_content_type(content_type)
         validated_url = self._validate_url(url)
-        content_type = content_type.lower()
 
-        # Normalize inputs
         normalized_title = title.strip()
 
         try:
-            # Create content
             new_content = await self.dao.create_content(
                 space_id=space_id,
                 title=normalized_title,
                 content_type=validated_type.lower(),
                 content=content,
                 url=validated_url,
+                tag_names=tags,
             )
-            
+
             await self.space_dao.touch_space(space_id=space_id)
-            
-            # Invalidate cache
+            self._with_tag_names(new_content)
+
+            # Invalidate every cache entry this new item could affect
             await self.cache.delete(get_space_contents_cache_key(space_id))
             await self.cache.delete(
                 get_space_contents_by_type_cache_key(space_id, validated_type.value)
@@ -207,7 +228,7 @@ class ContentService:
             logger.info(f"Content created: {new_content.id} in space {space_id}")
             return new_content
 
-        except IntegrityError as e:
+        except IntegrityError:
             raise ContentCreationFailed(reason="Database constraint violation")
         except Exception as e:
             raise ContentCreationFailed(reason=f"Unexpected error: {str(e)}")
@@ -221,59 +242,47 @@ class ContentService:
         """
         Retrieve content by ID with optional authorization check.
 
-        Args:
-            content_id: ID of the content
-            space_id: Optional space ID for verification
-            user_id: Optional user ID for authorization check
-
-        Returns:
-            Content: The content object
-
         Raises:
             ContentNotFound: If content doesn't exist
             UnauthorizedContentAccess: If user doesn't have permission
         """
-        # Try cache first
         cache_key = get_content_cache_key(content_id)
         cached_content = await self.cache.get(cache_key)
-        if cached_content is not None:
+        if isinstance(cached_content, dict):
             logger.info(f"Content {content_id} retrieved from cache")
-            # Reconstruct Content object from cached dictionary
-            if isinstance(cached_content, dict):
-                cached_content['type'] = ContentType(cached_content['type'])
-                # Convert ISO format string back to datetime
-                if isinstance(cached_content.get('created_at'), str):
-                    cached_content['created_at'] = datetime.fromisoformat(cached_content['created_at'])
-                return Content(**cached_content)
-            
+            content = self._content_from_cache_item(cached_content)
+            if space_id is not None and content.space_id != space_id:
+                raise ContentNotFound(content_id)
+            if user_id is not None:
+                space = await self.space_dao.get_space_by_id(content.space_id)
+                if not space:
+                    raise UnauthorizedContentAccess(content_id)
+                try:
+                    await self._check_access(space, user_id, require_edit=False)
+                except UnauthorizedContentAccess:
+                    raise UnauthorizedContentAccess(content_id)
+            return content
+
         logger.info("Cache MISS")
 
-        # Get from database
         content = await self.dao.get_content_by_id(content_id)
         if not content:
             raise ContentNotFound(content_id)
 
-        # Verify space if provided
         if space_id is not None and content.space_id != space_id:
             raise ContentNotFound(content_id)
 
-        # Check authorization if user_id provided
         if user_id is not None:
             space = await self.space_dao.get_space_by_id(content.space_id)
-            if not space or space.owner_id != user_id:
+            if not space:
+                raise UnauthorizedContentAccess(content_id)
+            try:
+                await self._check_access(space, user_id, require_edit=False)
+            except UnauthorizedContentAccess:
                 raise UnauthorizedContentAccess(content_id)
 
-        # Cache the content as a dictionary
-        content_dict = {
-            "id": content.id,
-            "space_id": content.space_id,
-            "title": content.title,
-            "type": content.type.value,
-            "content": content.content,
-            "url": content.url,
-            "created_at": content.created_at.isoformat(),
-        }
-        await self.cache.set(cache_key, content_dict)
+        self._with_tag_names(content)
+        await self.cache.set(cache_key, self._content_to_cache_item(content))
 
         return content
 
@@ -286,64 +295,33 @@ class ContentService:
         """
         Retrieve all content in a space with caching.
 
-        Args:
-            space_id: ID of the space
-            user_id: Optional user ID for authorization check
-            use_cache: Whether to use cache (default: True)
-
-        Returns:
-            list[Content]: List of content in the space
-
         Raises:
             SpaceNotFound: If space doesn't exist
-            UnauthorizedContentAccess: If user doesn't own the space
+            UnauthorizedContentAccess: If user doesn't have access
         """
-        # Verify space exists and user owns it
         space = await self.space_dao.get_space_by_id(space_id)
         if not space:
             raise SpaceNotFound(space_id)
 
-        if user_id is not None and space.owner_id != user_id:
-            raise UnauthorizedContentAccess()
+        await self._check_access(space, user_id, require_edit=False)
 
-        # Try cache first
         if use_cache:
             cache_key = get_space_contents_cache_key(space_id)
             cached_contents = await self.cache.get(cache_key)
-            if cached_contents is not None:
+            if isinstance(cached_contents, list):
                 logger.info(f"Space {space_id} contents retrieved from cache")
-                # Reconstruct Content objects from cached dictionaries
-                if isinstance(cached_contents, list):
-                    contents = []
-                    for item in cached_contents:
-                        if isinstance(item, dict):
-                            item['type'] = ContentType(item['type'])
-                            # Convert ISO format string back to datetime
-                            if isinstance(item.get('created_at'), str):
-                                item['created_at'] = datetime.fromisoformat(item['created_at'])
-                            contents.append(Content(**item))
-                    return contents
-                
-                
-        logger.info("Cache Miss")
-        # Get from database
-        contents = await self.dao.get_contents_by_space(space_id)
+                return [self._content_from_cache_item(item) for item in cached_contents if isinstance(item, dict)]
 
-        # Cache the results as dictionaries
+        logger.info("Cache Miss")
+        contents = await self.dao.get_contents_by_space(space_id)
+        for c in contents:
+            self._with_tag_names(c)
+
         if use_cache:
-            contents_dicts = [
-                {
-                    "id": c.id,
-                    "space_id": c.space_id,
-                    "title": c.title,
-                    "type": c.type.value,
-                    "content": c.content,
-                    "url": c.url,
-                    "created_at": c.created_at.isoformat(),
-                }
-                for c in contents
-            ]
-            await self.cache.set(get_space_contents_cache_key(space_id), contents_dicts)
+            await self.cache.set(
+                get_space_contents_cache_key(space_id),
+                [self._content_to_cache_item(c) for c in contents],
+            )
 
         return contents
 
@@ -357,69 +335,34 @@ class ContentService:
         """
         Retrieve content of a specific type in a space.
 
-        Args:
-            space_id: ID of the space
-            content_type: Type of content to filter by
-            user_id: Optional user ID for authorization check
-            use_cache: Whether to use cache (default: True)
-
-        Returns:
-            list[Content]: List of content matching the type
-
         Raises:
             SpaceNotFound: If space doesn't exist
-            UnauthorizedContentAccess: If user doesn't own the space
+            UnauthorizedContentAccess: If user doesn't have access
             InvalidContentType: If content type is invalid
         """
-        # Verify space exists and user owns it
         space = await self.space_dao.get_space_by_id(space_id)
         if not space:
             raise SpaceNotFound(space_id)
 
-        if user_id is not None and space.owner_id != user_id:
-            raise UnauthorizedContentAccess()
+        await self._check_access(space, user_id, require_edit=False)
 
-        # Validate content type
         validated_type = self._validate_content_type(content_type)
 
-        # Try cache first
         if use_cache:
             cache_key = get_space_contents_by_type_cache_key(space_id, validated_type.value)
             cached_contents = await self.cache.get(cache_key)
-            if cached_contents is not None:
+            if isinstance(cached_contents, list):
                 logger.info(f"Space {space_id} contents by type retrieved from cache")
-                # Reconstruct Content objects from cached dictionaries
-                if isinstance(cached_contents, list):
-                    contents = []
-                    for item in cached_contents:
-                        if isinstance(item, dict):
-                            item['type'] = ContentType(item['type'])
-                            # Convert ISO format string back to datetime
-                            if isinstance(item.get('created_at'), str):
-                                item['created_at'] = datetime.fromisoformat(item['created_at'])
-                            contents.append(Content(**item))
-                    return contents
+                return [self._content_from_cache_item(item) for item in cached_contents if isinstance(item, dict)]
 
-        # Get from database
         contents = await self.dao.get_contents_by_type(space_id, validated_type)
+        for c in contents:
+            self._with_tag_names(c)
 
-        # Cache the results as dictionaries
         if use_cache:
-            contents_dicts = [
-                {
-                    "id": c.id,
-                    "space_id": c.space_id,
-                    "title": c.title,
-                    "type": c.type.value,
-                    "content": c.content,
-                    "url": c.url,
-                    "created_at": c.created_at.isoformat(),
-                }
-                for c in contents
-            ]
             await self.cache.set(
                 get_space_contents_by_type_cache_key(space_id, validated_type.value),
-                contents_dicts,
+                [self._content_to_cache_item(c) for c in contents],
             )
 
         return contents
@@ -432,20 +375,10 @@ class ContentService:
         title: str | None = None,
         content: str | None = None,
         url: str | None = None,
+        tags: list[str] | None = None,
     ) -> Content:
         """
         Update content with authorization and validation.
-
-        Args:
-            content_id: ID of the content to update
-            space_id: ID of the space (for verification)
-            user_id: ID of the user performing the update
-            title: New title (optional)
-            content: New content body (optional)
-            url: New URL (optional)
-
-        Returns:
-            Content: The updated content object
 
         Raises:
             ContentNotFound: If content doesn't exist
@@ -454,10 +387,12 @@ class ContentService:
             ContentBodyTooLong: If new content is too long
             InvalidUrlFormat: If URL format is invalid
         """
-        # Get and verify content
+        # Get and verify content, then require edit permission to modify it
         content_obj = await self.get_content(content_id, space_id, user_id)
+        space = await self.space_dao.get_space_by_id(space_id)
+        if space:
+            await self._check_access(space, user_id, require_edit=True)
 
-        # Validate new values if provided
         if title is not None:
             self._validate_content_title(title)
             title = title.strip()
@@ -468,20 +403,27 @@ class ContentService:
         if url is not None:
             url = self._validate_url(url)
 
-        # Update content
         updated_content = await self.dao.update_content(
             content_id=content_id,
             title=title,
             content=content,
             url=url,
+            tag_names=tags,
         )
 
         if not updated_content:
             raise ContentNotFound(content_id)
 
-        # Invalidate cache
+        self._with_tag_names(updated_content)
+
+        # Invalidate every cache entry that could now be stale, including the
+        # type-filtered listing (previously missed, so edits didn't show up
+        # when browsing a space filtered by content type).
         await self.cache.delete(get_content_cache_key(content_id))
         await self.cache.delete(get_space_contents_cache_key(space_id))
+        await self.cache.delete(
+            get_space_contents_by_type_cache_key(space_id, content_obj.type.value)
+        )
 
         logger.info(f"Content {content_id} updated")
         return updated_content
@@ -495,26 +437,27 @@ class ContentService:
         """
         Delete content with authorization check.
 
-        Args:
-            content_id: ID of the content to delete
-            space_id: ID of the space (for verification)
-            user_id: ID of the user performing the deletion
-
         Raises:
             ContentNotFound: If content doesn't exist
             UnauthorizedContentAccess: If user doesn't have permission
         """
-        # Get and verify content
-        await self.get_content(content_id, space_id, user_id)
+        # Get and verify content, then require edit permission to delete it
+        content_obj = await self.get_content(content_id, space_id, user_id)
+        space = await self.space_dao.get_space_by_id(space_id)
+        if space:
+            await self._check_access(space, user_id, require_edit=True)
 
-        # Delete content
         deleted = await self.dao.delete_content(content_id)
 
         if not deleted:
             raise ContentNotFound(content_id)
 
-        # Invalidate cache
+        # Invalidate every cache entry that could now be stale, including the
+        # type-filtered listing (previously missed).
         await self.cache.delete(get_content_cache_key(content_id))
         await self.cache.delete(get_space_contents_cache_key(space_id))
+        await self.cache.delete(
+            get_space_contents_by_type_cache_key(space_id, content_obj.type.value)
+        )
 
         logger.info(f"Content {content_id} deleted")

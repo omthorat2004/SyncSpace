@@ -16,6 +16,17 @@ export interface Space {
   owner_id: number
   created_at: string
   updated_at: string
+  content_count?: number
+  member_count?: number
+  my_permission?: 'owner' | 'edit' | 'view'
+}
+
+/**
+ * Fields that can be changed when renaming/updating a space
+ */
+export interface UpdateSpaceFormData {
+  name?: string
+  description?: string
 }
 
 /**

@@ -18,3 +18,13 @@ class MissingFieldsException(AppException):
 class InvalidRefreshTokenException(AppException):
     def __init__(self):
         super().__init__("Invalid or expired refresh token", 401)
+
+
+class UserNotFoundException(AppException):
+    def __init__(self):
+        super().__init__("User not found", 404)
+
+
+class IncorrectPasswordException(AppException):
+    def __init__(self):
+        super().__init__("Current password is incorrect", 401)

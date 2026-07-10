@@ -44,8 +44,9 @@ class Content(Base):
     url = Column(String, nullable=True)
 
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
-    
+
     space = relationship("Space", back_populates="contents")
+    tags = relationship("Tag", secondary="content_tags", back_populates="contents")
 
     
 

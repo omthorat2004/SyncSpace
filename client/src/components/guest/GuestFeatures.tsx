@@ -12,7 +12,7 @@ const features = [
 
 const GuestFeatures: React.FC = () => {
     return (
-        <section className="features-section" aria-label="Features">
+        <section id="features" className="features-section scroll-mt-24" aria-label="Features">
             <div className="section-intro">
                 <p className="section-eyebrow">Built for clarity</p>
                 <h2 className="section-heading">Focus on content, not clutter</h2>

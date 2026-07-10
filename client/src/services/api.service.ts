@@ -45,24 +45,6 @@ export const publicApi = {
       { requiresAuth: true }
     );
   },
-
-  // Forgot password
-  forgotPassword: async (email: string) => {
-    return axiosInstance.post(
-      "/api/v1/auth/forgot-password",
-      { email },
-      { requiresAuth: false }
-    );
-  },
-
-  // Reset password
-  resetPassword: async (token: string, newPassword: string) => {
-    return axiosInstance.post(
-      "/api/v1/auth/reset-password",
-      { token, newPassword },
-      { requiresAuth: false }
-    );
-  },
 };
 
 // ============================================
@@ -154,6 +136,7 @@ export const protectedApi = {
       type: string;
       content: string;
       url?: string;
+      tags?: string[];
     }
   ) => {
     return axiosInstance.post(
@@ -171,6 +154,7 @@ export const protectedApi = {
       title: string;
       content: string;
       url: string;
+      tags: string[];
     }>
   ) => {
     return axiosInstance.put(
@@ -242,21 +226,13 @@ export const protectedApi = {
     );
   },
 
-  // Tags
-  getTags: async () => {
-    return axiosInstance.get("/api/v1/tags", {
+  // Share Space - Get spaces shared with the current user
+  getSharedWithMeSpaces: async () => {
+    return axiosInstance.get("/api/v1/share/shared-with-me", {
       requiresAuth: true,
     });
   },
 
-  // Activity
-  getRecentActivity: async () => {
-    return axiosInstance.get("/api/v1/activity/recent", {
-      requiresAuth: true,
-    });
-  },
-
-  
   logout: async () => {
     return axiosInstance.post(
       "/api/v1/auth/logout",

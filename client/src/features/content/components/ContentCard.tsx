@@ -1,3 +1,4 @@
+import Badge from "@/components/atoms/Badge";
 import { useAppDispatch } from "@/store/hook";
 import { useState } from "react";
 import { type Content } from "../content.type";
@@ -6,6 +7,8 @@ import { deleteContent } from "../contentSlice";
 interface ContentCardProps {
   content: Content;
   spaceId: number;
+  /** Whether the current user may edit/delete this content (owner or 'edit' permission). */
+  canEdit?: boolean;
   onEdit?: (content: Content) => void;
   onDelete?: () => void;
 }
@@ -13,6 +16,7 @@ interface ContentCardProps {
 export const ContentCard = ({
   content,
   spaceId,
+  canEdit = false,
   onEdit,
   onDelete,
 }: ContentCardProps) => {
@@ -86,7 +90,7 @@ export const ContentCard = ({
 
   return (
     <article className="card group relative overflow-hidden hover-lift">
-      {/* Glow Border Effect */}
+      {/* Glow border effect on hover */}
       <div
         className="
           absolute inset-0 opacity-0 group-hover:opacity-100
@@ -118,6 +122,17 @@ export const ContentCard = ({
           {content.content}
         </p>
 
+        {/* Tags */}
+        {content.tags && content.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {content.tags.map((tag) => (
+              <Badge key={tag} variant="neutral">
+                #{tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+
         {/* URL */}
         {content.url && (
           <div className="mb-4">
@@ -146,13 +161,13 @@ export const ContentCard = ({
             {copied ? "✓ Copied!" : "Copy"}
           </button>
 
-          {onEdit && (
+          {canEdit && onEdit && (
             <button
               onClick={() => onEdit(content)}
               className="
                 px-3 py-1.5 text-xs font-medium rounded-full
-                bg-foreground text-background
-                hover:bg-secondary
+                bg-accent text-accent-text
+                hover:bg-accent-hover
                 transition-all duration-200
               "
             >
@@ -160,19 +175,21 @@ export const ContentCard = ({
             </button>
           )}
 
-          <button
-            onClick={handleDelete}
-            disabled={loading}
-            className="
-              px-3 py-1.5 text-xs font-medium rounded-full
-              bg-destructive text-white
-              hover:bg-destructive/80
-              transition-all duration-200
-              disabled:opacity-50 disabled:cursor-not-allowed
-            "
-          >
-            {loading ? "Deleting..." : "Delete"}
-          </button>
+          {canEdit && (
+            <button
+              onClick={handleDelete}
+              disabled={loading}
+              className="
+                px-3 py-1.5 text-xs font-medium rounded-full
+                bg-destructive/10 text-destructive
+                hover:bg-destructive/15
+                transition-all duration-200
+                disabled:opacity-50 disabled:cursor-not-allowed
+              "
+            >
+              {loading ? "Deleting..." : "Delete"}
+            </button>
+          )}
         </div>
       </div>
     </article>

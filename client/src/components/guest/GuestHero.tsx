@@ -17,7 +17,7 @@ const GuestHero: React.FC = () => {
                     </p>
 
                     <div className="hero-actions">
-                        <Link to="/register" className="primary-button">
+                        <Link to="/signup" className="primary-button">
                             Get started
                         </Link>
                         <Link to="/login" className="secondary-button">

@@ -1,14 +1,16 @@
 import Footer from '@/components/Footer';
 import GuestFooter from '@/components/GuestFooter';
 import GuestNavbar from '@/components/GuestNavbar';
-import LoadingShimmer from '@/components/LoadingShimmer';
 import Navbar from '@/components/Navbar';
-import { getCurrentUser, selectAuthLoading } from '@/features/auth/authenticationSlice';
+import { getCurrentUser } from '@/features/auth/authenticationSlice';
 import GuestHome from '@/pages/GuestHome';
 import Home from '@/pages/Home';
 import Login from '@/pages/Login';
+import Privacy from '@/pages/Privacy';
+import Settings from '@/pages/Settings';
 import Signup from '@/pages/Signup';
 import SpaceDetail from '@/pages/SpaceDetail';
+import Terms from '@/pages/Terms';
 import { AuthRedirect, PrivateRoute } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/store/hook';
 import { useEffect } from 'react';
@@ -31,6 +33,9 @@ function AppShell() {
           <Route path='/login' element={<AuthRedirect><Login /></AuthRedirect>} />
           <Route path='/dashboard' element={<PrivateRoute><Home /></PrivateRoute>} />
           <Route path='/dashboard/spaces/:spaceId' element={<PrivateRoute><SpaceDetail /></PrivateRoute>} />
+          <Route path='/dashboard/settings' element={<PrivateRoute><Settings /></PrivateRoute>} />
+          <Route path='/terms' element={<Terms />} />
+          <Route path='/privacy' element={<Privacy />} />
         </Routes>
       </main>
       {useLoggedInLayout ? <Footer /> : <GuestFooter />}

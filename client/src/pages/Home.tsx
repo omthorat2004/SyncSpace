@@ -1,10 +1,11 @@
 import SpaceCard, { type SpaceCardData } from '@/components/SpaceCard';
+import EmptyState from '@/components/atoms/EmptyState';
 import CreateSpaceModal from '@/features/space/components/CreateSpaceModal';
 import SharedSpaces from '@/features/shared-spaces/components/SharedSpaces'; // Add this import
 import { fetchSpaces, openCreateModal } from '@/features/space/spaceSlice';
 import { useAppDispatch, useAppSelector } from '@/store/hook';
 import { useEffect, useState } from 'react';
-import { FiArrowRight, FiFolderPlus, FiPlus } from 'react-icons/fi';
+import { FiFolderPlus, FiPlus } from 'react-icons/fi';
 
 import { HeaderSkeleton } from '@/components/skeleton/HeaderSkeleton';
 import { SpaceCardSkeleton } from '@/components/skeleton/SpaceCardSkeleton';
@@ -29,8 +30,8 @@ const Home = () => {
     id: space.id,
     name: space.name,
     description: space.description || 'No description',
-    members: 1,
-    items: 0,
+    members: (space.member_count ?? 0) + 1,
+    items: space.content_count ?? 0,
     updated_at: new Date(space.updated_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -45,9 +46,12 @@ const Home = () => {
   }));
 
   const totalSpaces = spaces.length;
-  const totalItems = 0;
-  const collaborators = 1;
-  const recentlyActive = spaces.length > 0 ? 1 : 0;
+  const totalItems = spaces.reduce((sum, space) => sum + (space.content_count ?? 0), 0);
+  const collaborators = spaces.reduce((sum, space) => sum + (space.member_count ?? 0), 0);
+  const recentlyActive = spaces.filter((space) => {
+    const daysSinceUpdate = (new Date().getTime() - new Date(space.updated_at).getTime()) / (1000 * 60 * 60 * 24);
+    return daysSinceUpdate <= 7;
+  }).length;
 
   if (initialLoading || loading) {
     return (
@@ -121,11 +125,6 @@ const Home = () => {
         <div className="mt-8">
           <div className="flex items-center justify-between gap-4 mb-4">
             <h2 className="text-lg font-semibold text-foreground">My Spaces</h2>
-            {spaceCards.length > 0 && (
-              <button className="text-sm text-muted flex items-center gap-1 hover:text-foreground transition-colors">
-                View all <FiArrowRight />
-              </button>
-            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -151,8 +150,12 @@ const Home = () => {
             {spaceCards.length > 0 ? (
               spaceCards.map((space) => <SpaceCard key={space.id} space={space} />)
             ) : (
-              <div className="col-span-1 md:col-span-2 text-center py-12">
-                <p className="text-muted">No spaces yet. Create your first space to get started.</p>
+              <div className="col-span-1 md:col-span-2">
+                <EmptyState
+                  icon={<FiFolderPlus size={22} />}
+                  title="No spaces yet"
+                  description="Create your first space to start organizing notes, links, and snippets."
+                />
               </div>
             )}
           </div>

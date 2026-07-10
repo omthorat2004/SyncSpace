@@ -2,6 +2,7 @@ import type {
     CreateSpaceFormData,
     Space,
     SpaceState,
+    UpdateSpaceFormData,
 } from '@/features/space/space.type'
 import { protectedApi } from '@/services/api.service'
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
@@ -56,6 +57,43 @@ export const fetchSpaces = createAsyncThunk<Space[], void, { rejectValue: string
       return Array.isArray(spaces) ? spaces : []
     } catch (err) {
       return rejectWithValue(extractErrorMessage(err, 'Failed to fetch spaces'))
+    }
+  }
+)
+
+export const fetchSpace = createAsyncThunk<Space, number, { rejectValue: string }>(
+  'space/fetchSpace',
+  async (spaceId, { rejectWithValue }) => {
+    try {
+      const response = await protectedApi.getSpace(spaceId)
+      return response.data as Space
+    } catch (err) {
+      return rejectWithValue(extractErrorMessage(err, 'Failed to load space'))
+    }
+  }
+)
+
+export const updateSpace = createAsyncThunk<
+  Space,
+  { spaceId: number; data: UpdateSpaceFormData },
+  { rejectValue: string }
+>('space/updateSpace', async ({ spaceId, data }, { rejectWithValue }) => {
+  try {
+    const response = await protectedApi.updateSpace(spaceId, data)
+    return response.data as Space
+  } catch (err) {
+    return rejectWithValue(extractErrorMessage(err, 'Failed to update space'))
+  }
+})
+
+export const deleteSpace = createAsyncThunk<number, number, { rejectValue: string }>(
+  'space/deleteSpace',
+  async (spaceId, { rejectWithValue }) => {
+    try {
+      await protectedApi.deleteSpace(spaceId)
+      return spaceId
+    } catch (err) {
+      return rejectWithValue(extractErrorMessage(err, 'Failed to delete space'))
     }
   }
 )
@@ -123,6 +161,36 @@ const spaceSlice = createSlice({
       })
       .addCase(fetchSpaces.rejected, (state, action) => {
         state.loading = false
+        state.error = action.payload as string
+      })
+
+      // Fetch single space
+      .addCase(fetchSpace.fulfilled, (state, action) => {
+        state.currentSpace = action.payload
+      })
+
+      // Update Space
+      .addCase(updateSpace.fulfilled, (state, action) => {
+        const index = state.spaces.findIndex((s) => s.id === action.payload.id)
+        if (index !== -1) {
+          state.spaces[index] = { ...state.spaces[index], ...action.payload }
+        }
+        if (state.currentSpace?.id === action.payload.id) {
+          state.currentSpace = { ...state.currentSpace, ...action.payload }
+        }
+      })
+      .addCase(updateSpace.rejected, (state, action) => {
+        state.error = action.payload as string
+      })
+
+      // Delete Space
+      .addCase(deleteSpace.fulfilled, (state, action) => {
+        state.spaces = state.spaces.filter((s) => s.id !== action.payload)
+        if (state.currentSpace?.id === action.payload) {
+          state.currentSpace = null
+        }
+      })
+      .addCase(deleteSpace.rejected, (state, action) => {
         state.error = action.payload as string
       })
   },

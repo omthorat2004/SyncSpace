@@ -66,3 +66,22 @@ class LogoutResponseModel(BaseModel):
 class ReturnUserResponse(BaseModel):
     user:User
 
+
+class UpdateProfileRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2)
+    email: EmailStr | None = Field(default=None)
+
+
+class UpdateProfileResponse(BaseModel):
+    user: User
+    message: str = "Profile updated successfully"
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str = Field(..., min_length=1, validation_alias=AliasChoices("old_password", "oldPassword"))
+    new_password: SecretStr = Field(..., min_length=8, validation_alias=AliasChoices("new_password", "newPassword"))
+
+
+class ChangePasswordResponse(BaseModel):
+    message: str = "Password changed successfully"
+

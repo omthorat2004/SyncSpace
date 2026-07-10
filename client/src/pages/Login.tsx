@@ -1,16 +1,15 @@
+import Button from '@/components/atoms/Button'
 import type { LoginFormData } from '@/features/auth/auth.type'
 import { login } from '@/features/auth/authenticationSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hook'
 import { useEffect, useState } from 'react'
-import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { MdEmail, MdVisibility, MdVisibilityOff } from 'react-icons/md'
 import { Link, useNavigate } from 'react-router-dom'
-import { Toaster } from 'sonner'
 
 export default function Login() {
   const dispatch = useAppDispatch()
   const { loading, error } = useAppSelector((state) => state.auth)
-  const isAuthenticated = useAppSelector((state)=>state.auth.isAuthenticated)
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
   const navigate = useNavigate()
 
   const [formData, setFormData] = useState<LoginFormData>({
@@ -21,7 +20,6 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [formErrors, setFormErrors] = useState<Partial<LoginFormData>>({})
 
-  // Validation function
   const validateForm = (): boolean => {
     const errors: Partial<LoginFormData> = {}
 
@@ -41,14 +39,12 @@ export default function Login() {
     return Object.keys(errors).length === 0
   }
 
-  // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
     }))
-    // Clear error for this field when user starts typing
     if (formErrors[name as keyof LoginFormData]) {
       setFormErrors(prev => ({
         ...prev,
@@ -57,7 +53,6 @@ export default function Login() {
     }
   }
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -73,6 +68,7 @@ export default function Login() {
       console.error('Login failed:', err)
     }
   }
+
   useEffect(() => {
     if (isAuthenticated) {
       const redirectPath = localStorage.getItem('redirectAfterLogin')
@@ -82,31 +78,27 @@ export default function Login() {
       }
     }
   }, [isAuthenticated, navigate])
+
   return (
-    <div className="min-h-full bg-background text-foreground flex items-center justify-center px-4 py-14">
+    <div className="min-h-full bg-background text-foreground flex items-center justify-center px-4 py-10 sm:py-14">
       <div className="w-full max-w-md">
-        {/* Card container */}
         <div className="card rounded-2xl p-6 sm:p-8">
-          {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-semibold mt-2 text-foreground">
-              Welcome Back
+            <h1 className="text-2xl sm:text-3xl font-semibold mt-2 text-foreground">
+              Welcome back
             </h1>
-            <p className="text-sm text-muted">
+            <p className="text-sm text-muted mt-1">
               Sign in to your SyncSpace account
             </p>
           </div>
 
-          {/* Error message */}
           {error && (
-            <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg">
+            <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
               <p className="text-destructive text-sm font-medium">{error}</p>
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            {/* Email field */}
             <div className="form-group">
               <label htmlFor="email" className="form-label">
                 Email Address
@@ -127,25 +119,16 @@ export default function Login() {
                 />
               </div>
               {formErrors.email && (
-                <p className=" text-xs mt-1.5 font-medium">
+                <p className="text-destructive text-xs mt-1.5 font-medium">
                   {formErrors.email}
                 </p>
               )}
             </div>
 
-            {/* Password field */}
             <div className="form-group">
-              <div className="flex items-center justify-between mb-1">
-                <label htmlFor="password" className="form-label mb-0">
-                  Password
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-xs font-medium text-muted hover:text-foreground transition-colors duration-200"
-                >
-                  Forgot?
-                </Link>
-              </div>
+              <label htmlFor="password" className="form-label">
+                Password
+              </label>
               <div className="relative">
                 <input
                   id="password"
@@ -179,68 +162,40 @@ export default function Login() {
               )}
             </div>
 
-            {/* Submit button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="button w-full py-3 font-semibold mt-8 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              {loading ? (
-                <>
-                  <AiOutlineLoading3Quarters className="w-4 h-4 animate-spin" />
-                  <span>Signing In...</span>
-                </>
-              ) : (
-                <span>Sign In</span>
-              )}
-            </button>
+            <Button type="submit" variant="primary" size="lg" fullWidth isLoading={loading} className="mt-2">
+              Sign in
+            </Button>
           </form>
 
-          {/* Divider */}
           <div className="my-6 flex items-center gap-3">
             <div className="flex-1 h-px bg-border"></div>
             <span className="text-xs text-muted">Don't have an account?</span>
             <div className="flex-1 h-px bg-border"></div>
           </div>
 
-          {/* Signup link */}
           <div className="text-center">
             <p className="text-sm text-muted">
               Create a new account{' '}
-              <Link
-                to="/signup"
-                className="text-link hover:text-link-hover font-semibold transition-colors"
-                style={{ textDecoration: 'none' }}
-              >
+              <Link to="/signup" className="text-link hover:text-link-hover font-semibold transition-colors">
                 here
               </Link>
             </p>
           </div>
         </div>
 
-        {/* Footer text */}
         <div className="mt-6 text-center text-xs text-muted">
           <p>
             By signing in, you agree to our{' '}
-            <Link
-              to="/terms"
-              className="text-link hover:text-link-hover"
-              style={{ textDecoration: 'none' }}
-            >
+            <Link to="/terms" className="text-link hover:text-link-hover">
               Terms of Service
             </Link>
             {' and '}
-            <Link
-              to="/privacy"
-              className="text-link hover:text-link-hover"
-              style={{ textDecoration: 'none' }}
-            >
+            <Link to="/privacy" className="text-link hover:text-link-hover">
               Privacy Policy
             </Link>
           </p>
         </div>
       </div>
-      <Toaster/>
     </div>
   )
 }

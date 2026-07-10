@@ -25,6 +25,21 @@ class AuthDAO:
         user = result.scalar_one_or_none()
         return user
 
+    async def update_user_profile(self, user: User, name: str | None = None, email: str | None = None) -> User:
+        if name is not None:
+            user.name = name
+        if email is not None:
+            user.email = email
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+
+    async def update_user_password(self, user: User, new_password: str) -> User:
+        user.password = new_password
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+
     async def bump_user_token_version(self, user: User) -> int:
         user.token_version += 1
         await self.db.commit()

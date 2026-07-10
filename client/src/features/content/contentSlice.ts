@@ -62,12 +62,14 @@ export const createContent = createAsyncThunk(
             type,
             content,
             url,
+            tags,
         }: {
             spaceId: number;
             title: string;
             type: ContentType;
             content: string;
             url?: string;
+            tags?: string[];
         },
         { rejectWithValue }
     ) => {
@@ -77,6 +79,7 @@ export const createContent = createAsyncThunk(
                 type,
                 content,
                 url,
+                tags,
             });
             return response.data.content;
         } catch (error: any) {
@@ -96,12 +99,14 @@ export const updateContent = createAsyncThunk(
             title,
             content,
             url,
+            tags,
         }: {
             spaceId: number;
             contentId: number;
             title?: string;
             content?: string;
             url?: string;
+            tags?: string[];
         },
         { rejectWithValue }
     ) => {
@@ -110,6 +115,7 @@ export const updateContent = createAsyncThunk(
                 title,
                 content,
                 url,
+                tags,
             });
             return response.data.content;
         } catch (error: any) {

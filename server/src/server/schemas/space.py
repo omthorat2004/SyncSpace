@@ -85,6 +85,12 @@ class SpaceResponse(BaseModel):
     owner_id: int = Field(..., description="ID of the space owner")
     created_at: datetime = Field(..., description="Timestamp when space was created")
     updated_at: datetime = Field(..., description="Timestamp when space was last updated")
+    content_count: int = Field(default=0, description="Number of content items in the space")
+    member_count: int = Field(default=0, description="Number of users the space is shared with")
+    my_permission: str = Field(
+        default="owner",
+        description="The requesting user's access level on this space: 'owner', 'edit', or 'view'",
+    )
 
     model_config = {"from_attributes": True}
 

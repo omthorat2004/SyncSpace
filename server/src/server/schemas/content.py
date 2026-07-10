@@ -34,6 +34,11 @@ class CreateContentRequest(BaseModel):
         description="Optional URL for link type content",
         examples=["https://example.com"],
     )
+    tags: list[str] | None = Field(
+        default=None,
+        description="Optional list of tag names to attach to the content",
+        examples=[["work", "reference"]],
+    )
 
     @field_validator("title")
     @classmethod
@@ -71,6 +76,10 @@ class UpdateContentRequest(BaseModel):
         default=None,
         description="New URL for link type content",
     )
+    tags: list[str] | None = Field(
+        default=None,
+        description="Replace the content's tags with this list (omit to leave unchanged)",
+    )
 
     @field_validator("title")
     @classmethod
@@ -93,6 +102,7 @@ class ContentResponse(BaseModel):
     content: str = Field(..., description="Content body/text")
     url: str | None = Field(default=None, description="URL for link type content")
     created_at: datetime = Field(..., description="Timestamp when content was created")
+    tags: list[str] = Field(default_factory=list, description="Tags attached to this content")
 
     model_config = {"from_attributes": True}
 
