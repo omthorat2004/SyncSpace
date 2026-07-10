@@ -14,9 +14,7 @@
 Thumbs.db
 
 # Editors / IDEs
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
+.vscode/
 .idea/
 *.swp
 *.swo
