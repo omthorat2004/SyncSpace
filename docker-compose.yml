@@ -24,7 +24,7 @@ services:
     image: redis:7-alpine
     container_name: syncspace-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -40,8 +40,10 @@ services:
       dockerfile: Dockerfile
     container_name: syncspace-server
     environment:
-      DATABASE_URL: postgresql://syncspace_user:syncspace_password@postgres:5432/syncspace_db
-      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql+asyncpg://syncspace_user:syncspace_password@postgres:5432/syncspace_db
+      REDISCLOUD_URL: redis://redis:6379/0
+      SECRET_KEY: dev-only-secret-change-in-production
+      ALLOW_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173"]'
       ENVIRONMENT: development
     ports:
       - "8000:8000"
